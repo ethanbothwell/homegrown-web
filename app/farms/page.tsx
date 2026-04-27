@@ -76,16 +76,16 @@ export default function FarmsPage() {
                       <p className="text-sm text-gray-600 mb-3 line-clamp-2">{farm.description}</p>
                     )}
                     <div className="flex flex-wrap gap-1.5">
-                      {farm.practices.slice(0, 4).map((p) => (
+                      {(farm.practices ?? []).slice(0, 4).map((p) => (
                         <Badge key={p.id} variant="secondary" className="text-xs">
                           {p.name}
                         </Badge>
                       ))}
                     </div>
-                    {farm.subscriptionPlans.filter((p) => p.isActive).length > 0 && (
+                    {(farm.subscriptionPlans ?? []).filter((p) => p.isActive).length > 0 && (
                       <p className="text-xs text-green-700 font-medium mt-3">
-                        {farm.subscriptionPlans.filter((p) => p.isActive).length} subscription plan
-                        {farm.subscriptionPlans.filter((p) => p.isActive).length !== 1 ? "s" : ""} available
+                        {(farm.subscriptionPlans ?? []).filter((p) => p.isActive).length} subscription plan
+                        {(farm.subscriptionPlans ?? []).filter((p) => p.isActive).length !== 1 ? "s" : ""} available
                       </p>
                     )}
                   </CardContent>
