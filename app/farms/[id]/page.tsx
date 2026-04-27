@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { farms as farmsApi, subscriptionPlans, Farm, SubscriptionPlan } from "@/lib/api";
+import { farms as farmsApi, checkout, Farm, SubscriptionPlan } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { MapPin, Loader2, Calendar } from "lucide-react";
@@ -45,12 +45,15 @@ export default function FarmDetailPage() {
     }
     setSubscribing(plan.id);
     try {
-      await subscriptionPlans.subscribe(plan.id, {});
-      toast.success(`Subscribed to ${plan.name}!`);
-      router.push("/my-subscriptions");
+      const origin = window.location.origin;
+      const { url } = await checkout.createSession(
+        plan.id,
+        `${origin}/my-subscriptions?success=true`,
+        `${origin}/farms/${id}`
+      );
+      window.location.href = url;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to subscribe.");
-    } finally {
+      toast.error(err instanceof Error ? err.message : "Failed to start checkout.");
       setSubscribing(null);
     }
   }

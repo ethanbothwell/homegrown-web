@@ -168,6 +168,20 @@ export const mySubscriptions = {
     request<FarmSubscription>(`/api/my/subscriptions/${id}/cancel`, { method: "POST" }),
 };
 
+// ─── Checkout ─────────────────────────────────────────────────────────────
+export const checkout = {
+  createSession: (
+    planId: string,
+    successUrl: string,
+    cancelUrl: string,
+    opts?: { shippingAddress?: string; notes?: string }
+  ) =>
+    request<{ url: string }>("/api/checkout/session", {
+      method: "POST",
+      body: JSON.stringify({ planId, successUrl, cancelUrl, ...opts }),
+    }),
+};
+
 // ─── Newsletter ───────────────────────────────────────────────────────────
 export const newsletter = {
   subscribe: (email: string) =>
