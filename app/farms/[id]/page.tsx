@@ -165,7 +165,7 @@ export default function FarmDetailPage() {
                   </p>
                 )}
 
-                <div className="mt-auto flex items-end justify-between gap-4">
+                <div className="mt-auto flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
                   <div>
                     <span className="font-heading text-3xl font-bold text-foreground">
                       ${plan.price.toFixed(0)}
@@ -177,7 +177,7 @@ export default function FarmDetailPage() {
                   <Button
                     onClick={() => handleSubscribe(plan)}
                     disabled={subscribing === plan.id}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6"
+                    className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6"
                   >
                     {subscribing === plan.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

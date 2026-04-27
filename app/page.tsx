@@ -42,10 +42,9 @@ export default function HomePage() {
       <section
         className="relative flex items-center justify-center text-center"
         style={{
-          minHeight: "100vh",
+          minHeight: "100svh",
           backgroundImage: `url('${PRODUCE_IMAGE}')`,
           backgroundSize: "cover",
-          backgroundAttachment: "fixed",
           backgroundPosition: "center",
         }}
       >
@@ -58,7 +57,7 @@ export default function HomePage() {
           }}
         />
 
-        <div className="relative z-10 max-w-3xl mx-auto px-6 py-32">
+        <div className="relative z-10 max-w-3xl mx-auto px-5 py-24 sm:py-32">
           <p
             className="text-xs font-bold tracking-[0.16em] uppercase mb-5"
             style={{ color: "#D4A96A" }}
@@ -86,11 +85,11 @@ export default function HomePage() {
             Direct from small farms to your table.
           </p>
 
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/farms">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <Link href="/farms" className="w-full sm:w-auto">
               <Button
                 size="lg"
-                className="rounded-full px-8 font-semibold text-base border-0 transition-all duration-300 hover:-translate-y-0.5"
+                className="w-full sm:w-auto rounded-full px-8 font-semibold text-base border-0 transition-all duration-300 hover:-translate-y-0.5"
                 style={{
                   backgroundColor: "#C4622D",
                   color: "#ffffff",
@@ -100,10 +99,10 @@ export default function HomePage() {
                 Browse Farms
               </Button>
             </Link>
-            <Link href="/register">
+            <Link href="/register" className="w-full sm:w-auto">
               <Button
                 size="lg"
-                className="rounded-full px-8 font-semibold text-base transition-all duration-300 hover:bg-white/20"
+                className="w-full sm:w-auto rounded-full px-8 font-semibold text-base transition-all duration-300 hover:bg-white/20"
                 style={{
                   background: "rgba(255,255,255,0.1)",
                   color: "#ffffff",
@@ -271,7 +270,7 @@ export default function HomePage() {
 
             <form
               onSubmit={handleWaitlist}
-              className="flex gap-2 justify-center flex-wrap"
+              className="flex flex-col sm:flex-row gap-3 justify-center items-center w-full max-w-sm mx-auto"
             >
               <input
                 type="email"
@@ -279,7 +278,7 @@ export default function HomePage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="rounded-full px-5 py-3 text-sm outline-none w-72"
+                className="rounded-full px-5 py-3 text-sm outline-none w-full"
                 style={{
                   background: "rgba(255,255,255,0.12)",
                   border: "1.5px solid rgba(255,255,255,0.25)",
@@ -289,7 +288,7 @@ export default function HomePage() {
               <Button
                 type="submit"
                 disabled={submitting}
-                className="rounded-full px-7 font-semibold border-0"
+                className="w-full sm:w-auto rounded-full px-7 font-semibold border-0 whitespace-nowrap"
                 style={{ backgroundColor: "#D4A96A", color: "#1e3a0e" }}
               >
                 {submitting ? "Joining…" : "Subscribe"}
@@ -342,7 +341,7 @@ export default function HomePage() {
 
       {/* ─── FOOTER ───────────────────────────── */}
       <footer style={{ backgroundColor: "#1a2e0a", color: "rgba(250,247,242,0.75)" }}>
-        <div className="max-w-6xl mx-auto px-6 pt-16 pb-0">
+        <div className="max-w-6xl mx-auto px-5 sm:px-6 pt-14 pb-0">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12">
             {/* Brand col */}
             <div className="md:col-span-2">
@@ -400,7 +399,7 @@ export default function HomePage() {
               <p className="text-sm mb-3 leading-relaxed">
                 Seasonal picks, farm stories, and recipes — delivered weekly.
               </p>
-              <form onSubmit={handleWaitlist} className="flex gap-2">
+              <form onSubmit={handleWaitlist} className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="email"
                   placeholder="your@email.com"
@@ -416,10 +415,10 @@ export default function HomePage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-full px-4 py-2 text-sm font-semibold shrink-0"
+                  className="rounded-full px-4 py-2 text-sm font-semibold"
                   style={{ backgroundColor: "#D4A96A", color: "#1e3a0e" }}
                 >
-                  Go
+                  Subscribe
                 </button>
               </form>
             </div>

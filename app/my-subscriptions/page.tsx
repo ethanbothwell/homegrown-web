@@ -118,7 +118,7 @@ function MySubscriptionsContent() {
               </Badge>
             </div>
 
-            <div className="grid grid-cols-2 gap-y-2 text-sm text-muted-foreground mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 text-sm text-muted-foreground mb-5">
               <span>{frequencyLabel[sub.frequency]}</span>
               <span className="font-medium text-foreground">${sub.price.toFixed(2)} / delivery</span>
               <span className="col-span-2 text-xs">

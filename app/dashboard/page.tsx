@@ -205,7 +205,7 @@ export default function DashboardPage() {
                   placeholder="Tell customers about your farm…"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="floc">Location</Label>
                   <Input id="floc" value={farmLocation} onChange={(e) => setFarmLocation(e.target.value)} placeholder="e.g. Sonoma, CA" className="bg-card" />
@@ -299,8 +299,8 @@ export default function DashboardPage() {
               <div className="bg-card border border-border rounded-xl p-6 mb-6">
                 <h3 className="font-heading font-semibold text-foreground mb-5">New plan</h3>
                 <form onSubmit={createPlan} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5 col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5 sm:col-span-2">
                       <Label htmlFor="pname">Plan name *</Label>
                       <Input id="pname" value={planName} onChange={(e) => setPlanName(e.target.value)} required placeholder="e.g. Weekly Veggie Box" className="bg-background" />
                     </div>
@@ -321,7 +321,7 @@ export default function DashboardPage() {
                         <option value="Monthly">Monthly</option>
                       </select>
                     </div>
-                    <div className="space-y-1.5 col-span-2">
+                    <div className="space-y-1.5 sm:col-span-2">
                       <Label htmlFor="pdesc">Description</Label>
                       <Input id="pdesc" value={planDesc} onChange={(e) => setPlanDesc(e.target.value)} placeholder="What's included?" className="bg-background" />
                     </div>
