@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://homegrown-da4k.onrender.com";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export type Role = "Farmer" | "Buyer";
 
