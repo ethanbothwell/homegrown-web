@@ -2,16 +2,154 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
+import { useSearchParams } from "next/navigation";
+import { useAuth, WaitlistResult } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Role } from "@/lib/api";
+import { Check, Copy } from "lucide-react";
 
 const PRODUCE_IMAGE =
   "https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80";
 
+const OREGON_CITIES = [
+  "Portland",
+  "Salem",
+  "Corvallis",
+  "Eugene",
+  "Bend",
+  "Medford",
+  "Astoria",
+  "Newport",
+];
+
+const OREGON_COUNTIES = [
+  "Benton County",
+  "Clackamas County",
+  "Columbia County",
+  "Deschutes County",
+  "Jackson County",
+  "Josephine County",
+  "Lane County",
+  "Lincoln County",
+  "Linn County",
+  "Marion County",
+  "Multnomah County",
+  "Polk County",
+  "Tillamook County",
+  "Washington County",
+  "Yamhill County",
+];
+
+// ─── Share screen shown after successful registration ─────────────────────────
+
+function ShareScreen({ result, name }: { result: WaitlistResult; name: string }) {
+  const [copied, setCopied] = useState(false);
+  const community = result.community ?? "your area";
+  const position = result.waitlistPosition;
+  const remaining = result.remaining ?? 0;
+  const shareUrl = "https://homegrown-web.vercel.app";
+  const shareText = remaining > 0
+    ? `I just joined the HomeGrown waitlist in ${community}! We need ${remaining} more people to unlock local farm delivery. Join us at ${shareUrl}`
+    : `HomeGrown just unlocked in ${community}! Get fresh seasonal produce delivered straight from local farms. Sign up at ${shareUrl}`;
+
+  function copyLink() {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div className="text-center">
+      {/* Position badge */}
+      {position && (
+        <div
+          className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-5 mx-auto"
+          style={{ backgroundColor: "rgba(45,80,22,0.08)", border: "2px solid rgba(45,80,22,0.2)" }}
+        >
+          <span className="font-heading font-bold" style={{ fontSize: "1.6rem", color: "#2D5016" }}>
+            #{position}
+          </span>
+        </div>
+      )}
+
+      <h1 className="font-heading text-3xl font-bold mb-2" style={{ color: "#1a1a1a" }}>
+        You're on the list!
+      </h1>
+      <p className="text-sm mb-1" style={{ color: "#6b6b6b" }}>
+        Welcome, {name}. You're registered in{" "}
+        <span className="font-semibold" style={{ color: "#2D5016" }}>{community}</span>.
+      </p>
+
+      {remaining > 0 ? (
+        <>
+          <p className="text-sm mb-6" style={{ color: "#6b6b6b" }}>
+            <span className="font-bold text-base" style={{ color: "#C4622D" }}>{remaining}</span> more people needed to unlock HomeGrown in {community}.
+          </p>
+
+          {/* Progress bar */}
+          <div className="mb-6">
+            <div className="h-2 rounded-full overflow-hidden mb-1.5" style={{ backgroundColor: "#e8e2d9" }}>
+              <div
+                className="h-full rounded-full transition-all duration-1000"
+                style={{
+                  backgroundColor: "#2D5016",
+                  width: position ? `${Math.min(100, (position / (position + remaining)) * 100)}%` : "5%",
+                }}
+              />
+            </div>
+            <p className="text-xs text-right" style={{ color: "#aaa" }}>
+              {position ?? "?"} / {(position ?? 0) + remaining} members
+            </p>
+          </div>
+
+          <p className="text-sm font-semibold mb-4" style={{ color: "#1a1a1a" }}>
+            Help unlock {community} — share HomeGrown:
+          </p>
+        </>
+      ) : (
+        <p className="text-sm mb-6" style={{ color: "#6b6b6b" }}>
+          Your community has hit the threshold. HomeGrown is now live in {community}.
+        </p>
+      )}
+
+      {/* Share buttons */}
+      <div className="flex flex-col gap-3 mb-6">
+        <a
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 w-full rounded-full py-3 font-semibold text-sm transition-all duration-200 hover:-translate-y-0.5"
+          style={{ backgroundColor: "#1DA1F2", color: "#fff" }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          Share on X
+        </a>
+
+        <button
+          onClick={copyLink}
+          className="flex items-center justify-center gap-2 w-full rounded-full py-3 font-semibold text-sm transition-all duration-200 border-2 hover:-translate-y-0.5"
+          style={{ borderColor: "#2D5016", color: "#2D5016", backgroundColor: "transparent" }}
+        >
+          {copied ? <Check size={16} /> : <Copy size={16} />}
+          {copied ? "Copied!" : "Copy invite link"}
+        </button>
+      </div>
+
+      <Link
+        href="/farms"
+        className="text-sm font-medium hover:underline"
+        style={{ color: "#6b6b6b" }}
+      >
+        Browse farms in the meantime →
+      </Link>
+    </div>
+  );
+}
+
+// ─── Registration form ────────────────────────────────────────────────────────
+
 function RegisterForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const { register } = useAuth();
 
@@ -20,20 +158,31 @@ function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<Role>(defaultRole);
+  const [community, setCommunity] = useState("");
   const [loading, setLoading] = useState(false);
+  const [waitlistResult, setWaitlistResult] = useState<WaitlistResult | null>(null);
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     try {
-      await register(email, password, name, role);
-      toast.success("Account created.");
-      router.push(role === "Farmer" ? "/dashboard" : "/farms");
+      const result = await register(email, password, name, role, community || undefined);
+      if (result.community) {
+        setWaitlistResult(result);
+      } else {
+        // No community selected — go straight to the app
+        toast.success("Account created.");
+        window.location.href = role === "Farmer" ? "/dashboard" : "/farms";
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Registration failed.");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (waitlistResult) {
+    return <ShareScreen result={waitlistResult} name={name} />;
   }
 
   return (
@@ -70,34 +219,94 @@ function RegisterForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {[
-          { id: "name", label: "Full name", type: "text", value: name, setter: setName, auto: "name" },
-          { id: "email", label: "Email", type: "email", value: email, setter: setEmail, auto: "email" },
-          { id: "password", label: "Password", type: "password", value: password, setter: setPassword, auto: "new-password" },
-        ].map((f) => (
-          <div key={f.id}>
-            <label className="block text-sm font-bold mb-1.5" style={{ color: "#1a1a1a" }}>
-              {f.label}
-            </label>
-            <input
-              id={f.id}
-              type={f.type}
-              autoComplete={f.auto}
-              value={f.value}
-              onChange={(e) => f.setter(e.target.value)}
-              required
-              minLength={f.id === "password" ? 6 : undefined}
-              className="w-full rounded-lg px-4 py-3 text-sm outline-none transition-colors"
-              style={{
-                border: "1.5px solid #e8e2d9",
-                color: "#1a1a1a",
-                backgroundColor: "#ffffff",
-              }}
-              onFocus={(e) => (e.target.style.borderColor = "#2D5016")}
-              onBlur={(e) => (e.target.style.borderColor = "#e8e2d9")}
-            />
-          </div>
-        ))}
+        {/* Name */}
+        <div>
+          <label className="block text-sm font-bold mb-1.5" style={{ color: "#1a1a1a" }}>
+            Full name
+          </label>
+          <input
+            type="text"
+            autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            className="w-full rounded-lg px-4 py-3 text-sm outline-none transition-colors"
+            style={{ border: "1.5px solid #e8e2d9", color: "#1a1a1a", backgroundColor: "#ffffff" }}
+            onFocus={(e) => (e.target.style.borderColor = "#2D5016")}
+            onBlur={(e) => (e.target.style.borderColor = "#e8e2d9")}
+          />
+        </div>
+
+        {/* Email */}
+        <div>
+          <label className="block text-sm font-bold mb-1.5" style={{ color: "#1a1a1a" }}>
+            Email
+          </label>
+          <input
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full rounded-lg px-4 py-3 text-sm outline-none transition-colors"
+            style={{ border: "1.5px solid #e8e2d9", color: "#1a1a1a", backgroundColor: "#ffffff" }}
+            onFocus={(e) => (e.target.style.borderColor = "#2D5016")}
+            onBlur={(e) => (e.target.style.borderColor = "#e8e2d9")}
+          />
+        </div>
+
+        {/* Password */}
+        <div>
+          <label className="block text-sm font-bold mb-1.5" style={{ color: "#1a1a1a" }}>
+            Password
+          </label>
+          <input
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+            className="w-full rounded-lg px-4 py-3 text-sm outline-none transition-colors"
+            style={{ border: "1.5px solid #e8e2d9", color: "#1a1a1a", backgroundColor: "#ffffff" }}
+            onFocus={(e) => (e.target.style.borderColor = "#2D5016")}
+            onBlur={(e) => (e.target.style.borderColor = "#e8e2d9")}
+          />
+        </div>
+
+        {/* Community selector */}
+        <div>
+          <label className="block text-sm font-bold mb-1.5" style={{ color: "#1a1a1a" }}>
+            Your area <span className="font-normal" style={{ color: "#6b6b6b" }}>(optional)</span>
+          </label>
+          <select
+            value={community}
+            onChange={(e) => setCommunity(e.target.value)}
+            className="w-full rounded-lg px-4 py-3 text-sm outline-none transition-colors appearance-none"
+            style={{
+              border: "1.5px solid #e8e2d9",
+              color: community ? "#1a1a1a" : "#9b9b9b",
+              backgroundColor: "#ffffff",
+            }}
+            onFocus={(e) => (e.target.style.borderColor = "#2D5016")}
+            onBlur={(e) => (e.target.style.borderColor = "#e8e2d9")}
+          >
+            <option value="">Select your city or county…</option>
+            <optgroup label="Cities">
+              {OREGON_CITIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Counties">
+              {OREGON_COUNTIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </optgroup>
+          </select>
+          <p className="text-xs mt-1.5" style={{ color: "#aaa" }}>
+            Helps us show your community's progress toward unlocking HomeGrown.
+          </p>
+        </div>
 
         <button
           type="submit"

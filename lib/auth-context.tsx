@@ -10,11 +10,17 @@ interface User {
   role: Role;
 }
 
+export interface WaitlistResult {
+  waitlistPosition?: number;
+  remaining?: number;
+  community?: string;
+}
+
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, role: Role) => Promise<void>;
+  register: (email: string, password: string, name: string, role: Role, community?: string) => Promise<WaitlistResult>;
   logout: () => void;
 }
 
@@ -54,10 +60,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const register = useCallback(
-    async (email: string, password: string, name: string, role: Role) => {
-      const res = await auth.register(email, password, name, role);
+    async (email: string, password: string, name: string, role: Role, community?: string): Promise<WaitlistResult> => {
+      const res = await auth.register(email, password, name, role, community);
       persist(res);
       setUser(res.user);
+      return {
+        waitlistPosition: res.waitlistPosition,
+        remaining: res.remaining,
+        community: res.community,
+      };
     },
     []
   );

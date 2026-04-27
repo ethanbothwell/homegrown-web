@@ -7,6 +7,31 @@ export interface AuthResponse {
   refreshToken: string;
   expiresIn: number;
   user: { id: string; email: string; name: string; role: Role };
+  waitlistPosition?: number;
+  remaining?: number;
+  community?: string;
+}
+
+export interface CommunityStats {
+  name: string;
+  farmerCount: number;
+  buyerCount: number;
+  farmerTarget: number;
+  buyerTarget: number;
+  totalCount: number;
+  totalTarget: number;
+  unlocked: boolean;
+}
+
+export interface WaitlistStats {
+  farmerCount: number;
+  buyerCount: number;
+  farmerTarget: number;
+  buyerTarget: number;
+  totalCount: number;
+  totalTarget: number;
+  unlocked: boolean;
+  communities: CommunityStats[];
 }
 
 export interface Farm {
@@ -137,10 +162,10 @@ async function request<T>(
 
 // ─── Auth ──────────────────────────────────────────────────────────────────
 export const auth = {
-  register: (email: string, password: string, name: string, role: Role) =>
+  register: (email: string, password: string, name: string, role: Role, community?: string) =>
     request<AuthResponse>("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ email, password, name, role }),
+      body: JSON.stringify({ email, password, name, role, community }),
     }),
 
   login: (email: string, password: string) =>
@@ -231,6 +256,13 @@ export const checkout = {
       method: "POST",
       body: JSON.stringify({ planId, successUrl, cancelUrl, ...opts }),
     }),
+};
+
+// ─── Waitlist ─────────────────────────────────────────────────────────────
+export const waitlist = {
+  getStats: () => request<WaitlistStats>("/api/waitlist/stats"),
+  getCommunityStats: (community: string) =>
+    request<CommunityStats>(`/api/waitlist/stats/${encodeURIComponent(community)}`),
 };
 
 // ─── Newsletter ───────────────────────────────────────────────────────────

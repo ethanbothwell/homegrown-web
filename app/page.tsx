@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { newsletter } from "@/lib/api";
 import { toast } from "sonner";
 import { Leaf, Package, Handshake, Map, ShoppingBag, Truck } from "lucide-react";
+import { WaitlistProgress } from "@/components/waitlist-progress";
 
 const PRODUCE_IMAGE =
   "https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80";
@@ -247,6 +248,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ─── COMMUNITY WAITLIST ───────────────── */}
+      <WaitlistProgress />
 
       {/* ─── NEWSLETTER ───────────────────────── */}
       <section className="py-24" style={{ backgroundColor: "#2D5016" }}>
