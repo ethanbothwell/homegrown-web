@@ -34,6 +34,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem("user");
     if (stored) setUser(JSON.parse(stored));
     setLoading(false);
+
+    // When api.ts silently refreshes the token it updates localStorage but the
+    // React state doesn't know. Listen for storage events so the context stays
+    // in sync (e.g. if the user is logged out from another tab).
+    function onStorage(e: StorageEvent) {
+      if (e.key === "user") {
+        setUser(e.newValue ? JSON.parse(e.newValue) : null);
+      }
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

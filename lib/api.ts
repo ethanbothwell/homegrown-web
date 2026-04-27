@@ -61,18 +61,69 @@ function getToken(): string | null {
   return localStorage.getItem("access_token");
 }
 
+// Attempt a silent token refresh. Returns the new access token, or null if
+// the refresh token is missing/expired.
+async function silentRefresh(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  const refreshToken = localStorage.getItem("refresh_token");
+  if (!refreshToken) return null;
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (!res.ok) return null;
+    const data: AuthResponse = await res.json();
+    localStorage.setItem("access_token", data.accessToken);
+    localStorage.setItem("refresh_token", data.refreshToken);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    return data.accessToken;
+  } catch {
+    return null;
+  }
+}
+
+function clearSession() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("user");
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = getToken();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers as Record<string, string>),
+  const buildHeaders = (token: string | null): Record<string, string> => {
+    const h: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string>),
+    };
+    if (token) h["Authorization"] = `Bearer ${token}`;
+    return h;
   };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  // First attempt
+  let res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: buildHeaders(getToken()),
+  });
+
+  // If 401, try refreshing once then retry
+  if (res.status === 401) {
+    const newToken = await silentRefresh();
+    if (newToken) {
+      res = await fetch(`${BASE_URL}${path}`, {
+        ...options,
+        headers: buildHeaders(newToken),
+      });
+    } else {
+      clearSession();
+      throw new Error("Session expired. Please sign in again.");
+    }
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
