@@ -12,10 +12,17 @@ export interface AuthResponse {
 export interface Farm {
   id: string;
   name: string;
-  description?: string;
+  bio?: string;
+  philosophy?: string;
   location?: string;
+  city?: string;
+  state?: string;
   imageUrl?: string;
+  rating: number;
+  reviewCount: number;
   practices: { id: string; name: string }[];
+  ownerName: string;
+  ownerImageUrl?: string;
   subscriptionPlans: SubscriptionPlan[];
 }
 
@@ -97,9 +104,9 @@ export const farms = {
   list: () => request<Farm[]>("/api/farms"),
   get: (id: string) => request<Farm>(`/api/farms/${id}`),
   getMine: () => request<Farm>("/api/farms/mine"),
-  create: (data: { name: string; description?: string; location?: string; imageUrl?: string }) =>
+  create: (data: { name: string; bio?: string; location?: string; imageUrl?: string }) =>
     request<Farm>("/api/farms", { method: "POST", body: JSON.stringify(data) }),
-  update: (id: string, data: Partial<{ name: string; description: string; location: string; imageUrl: string }>) =>
+  update: (id: string, data: Partial<{ name: string; bio: string; location: string; imageUrl: string }>) =>
     request<Farm>(`/api/farms/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   addPractice: (farmId: string, name: string) =>
     request<{ id: string; name: string }>(`/api/farms/${farmId}/practices`, {

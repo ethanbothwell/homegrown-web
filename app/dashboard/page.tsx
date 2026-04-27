@@ -57,7 +57,7 @@ export default function DashboardPage() {
         setFarm(f);
         setPlans(f.subscriptionPlans ?? []);
         setFarmName(f.name);
-        setFarmDesc(f.description ?? "");
+        setFarmDesc(f.bio ?? "");
         setFarmLocation(f.location ?? "");
         setFarmImage(f.imageUrl ?? "");
       })
@@ -74,7 +74,7 @@ export default function DashboardPage() {
     try {
       const data = {
         name: farmName,
-        description: farmDesc || undefined,
+        bio: farmDesc || undefined,
         location: farmLocation || undefined,
         imageUrl: farmImage || undefined,
       };
@@ -237,7 +237,7 @@ export default function DashboardPage() {
               <div>
                 <h2 className="font-semibold text-gray-900">{farm.name}</h2>
                 {farm.location && <p className="text-sm text-gray-500">{farm.location}</p>}
-                {farm.description && <p className="text-sm text-gray-600 mt-2">{farm.description}</p>}
+                {farm.bio && <p className="text-sm text-gray-600 mt-2">{farm.bio}</p>}
               </div>
             ) : null}
           </CardContent>

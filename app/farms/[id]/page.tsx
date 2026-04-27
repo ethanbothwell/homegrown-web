@@ -98,8 +98,8 @@ export default function FarmDetailPage() {
           )}
         </div>
 
-        {farm.description && (
-          <p className="text-gray-700 mt-3 mb-4 leading-relaxed">{farm.description}</p>
+        {farm.bio && (
+          <p className="text-gray-700 mt-3 mb-4 leading-relaxed">{farm.bio}</p>
         )}
 
         {farm.practices.length > 0 && (

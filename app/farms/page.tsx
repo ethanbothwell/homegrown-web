@@ -72,8 +72,8 @@ export default function FarmsPage() {
                     )}
                   </CardHeader>
                   <CardContent>
-                    {farm.description && (
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{farm.description}</p>
+                    {farm.bio && (
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{farm.bio}</p>
                     )}
                     <div className="flex flex-wrap gap-1.5">
                       {(farm.practices ?? []).slice(0, 4).map((p) => (
