@@ -7,9 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Sprout } from "lucide-react";
 import { Role } from "@/lib/api";
 
 function RegisterForm() {
@@ -25,12 +23,12 @@ function RegisterForm() {
   const [role, setRole] = useState<Role>(defaultRole);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     try {
       await register(email, password, name, role);
-      toast.success("Account created!");
+      toast.success("Account created.");
       router.push(role === "Farmer" ? "/dashboard" : "/farms");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Registration failed.");
@@ -40,92 +38,93 @@ function RegisterForm() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Create an account</CardTitle>
-        <CardDescription>Join HomeGrown to connect with local farms.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Role toggle */}
-          <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-lg">
-            {(["Buyer", "Farmer"] as Role[]).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRole(r)}
-                className={`py-2 text-sm font-medium rounded-md transition-colors ${
-                  role === r
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                {r === "Buyer" ? "I'm a buyer" : "I'm a farmer"}
-              </button>
-            ))}
-          </div>
+    <>
+      <div className="mb-8">
+        <h1 className="font-heading text-3xl font-bold text-foreground mb-1">Create account</h1>
+        <p className="text-sm text-muted-foreground">Join HomeGrown for free.</p>
+      </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Full name</Label>
-            <Input
-              id="name"
-              type="text"
-              autoComplete="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-          </div>
-          <Button
-            type="submit"
-            className="w-full bg-green-700 hover:bg-green-800 text-white"
-            disabled={loading}
+      {/* Role toggle */}
+      <div className="flex gap-2 p-1 bg-muted rounded-full mb-6">
+        {(["Buyer", "Farmer"] as Role[]).map((r) => (
+          <button
+            key={r}
+            type="button"
+            onClick={() => setRole(r)}
+            className={`flex-1 py-1.5 text-sm font-medium rounded-full transition-colors ${
+              role === r
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
-            {loading ? "Creating account…" : "Create account"}
-          </Button>
-        </form>
+            {r === "Buyer" ? "I'm a buyer" : "I'm a farmer"}
+          </button>
+        ))}
+      </div>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Already have an account?{" "}
-          <Link href="/login" className="text-green-700 hover:underline">
-            Sign in
-          </Link>
-        </p>
-      </CardContent>
-    </Card>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="name" className="text-sm text-foreground">Full name</Label>
+          <Input
+            id="name"
+            type="text"
+            autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            className="bg-card"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="text-sm text-foreground">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="bg-card"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="password" className="text-sm text-foreground">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+            className="bg-card"
+          />
+        </div>
+        <Button
+          type="submit"
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full"
+          disabled={loading}
+        >
+          {loading ? "Creating account…" : "Create account"}
+        </Button>
+      </form>
+
+      <p className="text-sm text-muted-foreground mt-6 text-center">
+        Already have an account?{" "}
+        <Link href="/login" className="text-foreground underline underline-offset-4 hover:text-primary">
+          Sign in
+        </Link>
+      </p>
+    </>
   );
 }
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-green-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 text-green-700 font-semibold text-xl">
-            <Sprout className="h-6 w-6" />
+        <div className="mb-10">
+          <Link href="/" className="font-heading text-xl font-bold text-foreground">
             HomeGrown
           </Link>
         </div>

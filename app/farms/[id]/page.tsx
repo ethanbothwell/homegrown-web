@@ -5,17 +5,22 @@ import { useParams, useRouter } from "next/navigation";
 import { Nav } from "@/components/nav";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { farms as farmsApi, checkout, Farm, SubscriptionPlan } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { MapPin, Loader2, Calendar } from "lucide-react";
+import { MapPin, Loader2 } from "lucide-react";
 
 const frequencyLabel: Record<string, string> = {
-  Weekly: "Weekly",
-  Biweekly: "Every 2 weeks",
-  Monthly: "Monthly",
+  Weekly: "Weekly delivery",
+  Biweekly: "Every two weeks",
+  Monthly: "Monthly delivery",
+};
+
+const frequencyShort: Record<string, string> = {
+  Weekly: "/ week",
+  Biweekly: "/ 2 wks",
+  Monthly: "/ month",
 };
 
 export default function FarmDetailPage() {
@@ -63,7 +68,7 @@ export default function FarmDetailPage() {
       <>
         <Nav />
         <div className="flex items-center justify-center py-32">
-          <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       </>
     );
@@ -73,97 +78,117 @@ export default function FarmDetailPage() {
     return (
       <>
         <Nav />
-        <div className="text-center py-32 text-gray-500">Farm not found.</div>
+        <div className="text-center py-32 text-muted-foreground text-sm">Farm not found.</div>
       </>
     );
   }
 
-  const activePlans = farm.subscriptionPlans?.filter((p) => p.isActive) ?? [];
+  const activePlans = (farm.subscriptionPlans ?? []).filter((p) => p.isActive);
 
   return (
     <>
       <Nav />
-      <main className="max-w-4xl mx-auto px-4 py-10">
-        {/* Header */}
+      <main className="max-w-4xl mx-auto px-6 py-14">
+
+        {/* Farm header */}
         {farm.imageUrl && (
-          <div className="h-56 rounded-xl overflow-hidden mb-8">
+          <div className="h-64 md:h-80 rounded-xl overflow-hidden mb-10">
             <img src={farm.imageUrl} alt={farm.name} className="w-full h-full object-cover" />
           </div>
         )}
 
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">{farm.name}</h1>
+        <div className="mb-10">
+          <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-2">
+            {farm.name}
+          </h1>
           {farm.location && (
-            <p className="text-gray-500 flex items-center gap-1 mt-1">
-              <MapPin className="h-4 w-4" />
+            <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
+              <MapPin className="h-3.5 w-3.5" />
               {farm.location}
             </p>
           )}
         </div>
 
         {farm.bio && (
-          <p className="text-gray-700 mt-3 mb-4 leading-relaxed">{farm.bio}</p>
+          <p className="text-foreground/80 text-base leading-relaxed mb-8 max-w-2xl">
+            {farm.bio}
+          </p>
         )}
 
-        {farm.practices.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-8">
+        {(farm.practices ?? []).length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-12">
             {farm.practices.map((p) => (
-              <Badge key={p.id} variant="secondary">{p.name}</Badge>
+              <Badge key={p.id} variant="secondary" className="rounded-full px-3 font-normal">
+                {p.name}
+              </Badge>
             ))}
           </div>
         )}
 
-        <Separator className="my-8" />
+        <Separator className="mb-12" />
 
-        {/* Subscription Plans */}
+        {/* Subscription plans */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-1">Subscription Plans</h2>
-          <p className="text-gray-500 text-sm mb-6">
-            Subscribe to receive regular deliveries from this farm.
-          </p>
+          <div className="mb-8">
+            <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-2">
+              Subscription plans
+            </p>
+            <h2 className="font-heading text-2xl font-bold text-foreground">
+              Choose how you&apos;d like to receive your deliveries.
+            </h2>
+          </div>
 
           {activePlans.length === 0 && (
-            <p className="text-gray-500">No active plans right now. Check back soon!</p>
+            <p className="text-muted-foreground text-sm">
+              No active plans right now — check back soon.
+            </p>
           )}
 
           <div className="grid sm:grid-cols-2 gap-4">
             {activePlans.map((plan) => (
-              <Card key={plan.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">{plan.name}</CardTitle>
-                  <CardDescription className="flex items-center gap-1 text-xs">
-                    <Calendar className="h-3.5 w-3.5" />
+              <div
+                key={plan.id}
+                className="bg-card border border-border rounded-xl p-6 flex flex-col gap-4"
+              >
+                <div>
+                  <h3 className="font-heading font-semibold text-lg text-foreground mb-1">
+                    {plan.name}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
                     {frequencyLabel[plan.frequency]}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {plan.description && (
-                    <p className="text-sm text-gray-600 mb-3">{plan.description}</p>
-                  )}
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-2xl font-bold text-gray-900">
-                      ${plan.price.toFixed(2)}
-                      <span className="text-sm font-normal text-gray-500 ml-1">
-                        /{plan.frequency === "Weekly" ? "wk" : plan.frequency === "Biweekly" ? "2wks" : "mo"}
-                      </span>
+                  </p>
+                </div>
+
+                {plan.description && (
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {plan.description}
+                  </p>
+                )}
+
+                <div className="mt-auto flex items-end justify-between gap-4">
+                  <div>
+                    <span className="font-heading text-3xl font-bold text-foreground">
+                      ${plan.price.toFixed(0)}
                     </span>
-                    <Button
-                      onClick={() => handleSubscribe(plan)}
-                      disabled={subscribing === plan.id}
-                      className="bg-green-700 hover:bg-green-800 text-white"
-                      size="sm"
-                    >
-                      {subscribing === plan.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : user ? (
-                        "Subscribe"
-                      ) : (
-                        "Sign up to subscribe"
-                      )}
-                    </Button>
+                    <span className="text-sm text-muted-foreground ml-1">
+                      {frequencyShort[plan.frequency]}
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
+                  <Button
+                    onClick={() => handleSubscribe(plan)}
+                    disabled={subscribing === plan.id}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6"
+                  >
+                    {subscribing === plan.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : user ? (
+                      "Subscribe"
+                    ) : (
+                      "Sign up to subscribe"
+                    )}
+                  </Button>
+                </div>
+              </div>
             ))}
           </div>
         </div>
