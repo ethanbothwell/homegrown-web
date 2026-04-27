@@ -52,14 +52,13 @@ function RegisterForm() {
             key={r}
             type="button"
             onClick={() => setRole(r)}
-            className="rounded-lg py-4 px-3 text-center transition-all duration-200 border-2"
+            className="rounded-lg py-3 px-3 text-center transition-all duration-200 border-2"
             style={{
               borderColor: role === r ? "#2D5016" : "#e8e2d9",
               backgroundColor: role === r ? "rgba(45,80,22,0.06)" : "#ffffff",
               color: "#1a1a1a",
             }}
           >
-            <span className="text-2xl block mb-1">{r === "Buyer" ? "🛒" : "🌾"}</span>
             <span className="text-sm font-bold block">
               {r === "Buyer" ? "I'm a buyer" : "I'm a farmer"}
             </span>

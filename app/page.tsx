@@ -6,6 +6,7 @@ import { Nav } from "@/components/nav";
 import { Button } from "@/components/ui/button";
 import { newsletter } from "@/lib/api";
 import { toast } from "sonner";
+import { Leaf, Package, Handshake, Map, ShoppingBag, Truck } from "lucide-react";
 
 const PRODUCE_IMAGE =
   "https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80";
@@ -137,17 +138,17 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                icon: "🌱",
+                Icon: Leaf,
                 title: "Know your farmer",
                 body: "Every farm on HomeGrown has a profile with their story, their practices, and their land. You know exactly where your food comes from.",
               },
               {
-                icon: "📦",
+                Icon: Package,
                 title: "Flexible subscriptions",
                 body: "Weekly, biweekly, or monthly. Pause whenever life gets busy. Cancel anytime. Your schedule, your terms.",
               },
               {
-                icon: "🤝",
+                Icon: Handshake,
                 title: "Fair for everyone",
                 body: "Farmers keep more of what they earn. You pay less than specialty grocery. No middlemen, no markups.",
               },
@@ -161,10 +162,10 @@ export default function HomePage() {
                 }}
               >
                 <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-5"
-                  style={{ backgroundColor: "#FDF3E3", color: "#2D5016" }}
+                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
+                  style={{ backgroundColor: "#FDF3E3" }}
                 >
-                  {v.icon}
+                  <v.Icon className="w-7 h-7" style={{ color: "#2D5016" }} />
                 </div>
                 <h3
                   className="font-heading font-bold text-lg mb-3"
@@ -206,19 +207,19 @@ export default function HomePage() {
             {[
               {
                 num: "01",
-                icon: "🗺️",
+                Icon: Map,
                 title: "Browse local farms",
                 body: "Search farms near you. Read their story, see their practices, explore what they grow.",
               },
               {
                 num: "02",
-                icon: "🛒",
+                Icon: ShoppingBag,
                 title: "Pick a plan",
                 body: "Choose a weekly veggie box, a monthly meat share, or whatever fits your household.",
               },
               {
                 num: "03",
-                icon: "🚚",
+                Icon: Truck,
                 title: "Get deliveries",
                 body: "Your farmer prepares your box and delivers it on schedule. Pause or cancel any time.",
               },
@@ -231,10 +232,10 @@ export default function HomePage() {
                   {s.num}
                 </p>
                 <div
-                  className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl mx-auto mb-5"
-                  style={{ backgroundColor: "#2D5016", color: "#ffffff" }}
+                  className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-5"
+                  style={{ backgroundColor: "#2D5016" }}
                 >
-                  {s.icon}
+                  <s.Icon className="w-7 h-7 text-white" />
                 </div>
                 <h3 className="font-heading font-bold text-lg mb-2" style={{ color: "#1a1a1a" }}>
                   {s.title}
