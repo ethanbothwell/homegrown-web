@@ -4,9 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { newsletter } from "@/lib/api";
 import { toast } from "sonner";
+
+const PRODUCE_IMAGE =
+  "https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80";
 
 export default function HomePage() {
   const [email, setEmail] = useState("");
@@ -35,39 +37,49 @@ export default function HomePage() {
     <>
       <Nav />
 
-      {/* Hero */}
+      {/* ─── HERO ─────────────────────────────── */}
       <section
         className="relative flex items-center justify-center text-center"
         style={{
-          minHeight: "72vh",
-          background: "linear-gradient(135deg, #2D5016 0%, #3d6b1f 40%, #1e3a0e 100%)",
+          minHeight: "100vh",
+          backgroundImage: `url('${PRODUCE_IMAGE}')`,
+          backgroundSize: "cover",
+          backgroundAttachment: "fixed",
+          backgroundPosition: "center",
         }}
       >
-        {/* subtle texture overlay */}
+        {/* overlay */}
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0"
           style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 50%, #87A878 0%, transparent 50%), radial-gradient(circle at 80% 20%, #C4622D 0%, transparent 40%)",
+            background:
+              "linear-gradient(160deg, rgba(20,40,10,0.55) 0%, rgba(0,0,0,0.4) 100%)",
           }}
         />
 
-        <div className="relative max-w-3xl mx-auto px-6 py-28">
+        <div className="relative z-10 max-w-3xl mx-auto px-6 py-32">
           <p
-            className="text-xs font-semibold tracking-widest uppercase mb-5"
-            style={{ color: "rgba(212,169,106,0.9)" }}
+            className="text-xs font-bold tracking-[0.16em] uppercase mb-5"
+            style={{ color: "#D4A96A" }}
           >
             Local. Seasonal. Real.
           </p>
           <h1
-            className="font-heading text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] mb-6"
-            style={{ color: "#FAF7F2" }}
+            className="font-heading font-bold leading-[1.08] mb-6"
+            style={{
+              fontSize: "clamp(2.8rem, 7vw, 5.5rem)",
+              color: "#ffffff",
+              textShadow: "0 2px 12px rgba(0,0,0,0.3)",
+            }}
           >
             Know Your Farmer.<br />Love Your Food.
           </h1>
           <p
-            className="text-lg leading-relaxed mb-10 max-w-xl mx-auto"
-            style={{ color: "rgba(250,247,242,0.75)" }}
+            className="font-light leading-relaxed mb-10 max-w-xl mx-auto"
+            style={{
+              fontSize: "clamp(1rem, 2vw, 1.3rem)",
+              color: "rgba(255,255,255,0.88)",
+            }}
           >
             Fresh, local, and grown with intention.<br />
             Direct from small farms to your table.
@@ -77,8 +89,12 @@ export default function HomePage() {
             <Link href="/farms">
               <Button
                 size="lg"
-                className="rounded-full px-8 font-semibold text-base"
-                style={{ backgroundColor: "#C4622D", color: "#FAF7F2" }}
+                className="rounded-full px-8 font-semibold text-base border-0 transition-all duration-300 hover:-translate-y-0.5"
+                style={{
+                  backgroundColor: "#C4622D",
+                  color: "#ffffff",
+                  boxShadow: "0 4px 16px rgba(196,98,45,0.4)",
+                }}
               >
                 Browse Farms
               </Button>
@@ -86,9 +102,12 @@ export default function HomePage() {
             <Link href="/register">
               <Button
                 size="lg"
-                variant="outline"
-                className="rounded-full px-8 font-semibold text-base border-2 bg-transparent hover:bg-white/10"
-                style={{ borderColor: "rgba(250,247,242,0.6)", color: "#FAF7F2" }}
+                className="rounded-full px-8 font-semibold text-base transition-all duration-300 hover:bg-white/20"
+                style={{
+                  background: "rgba(255,255,255,0.1)",
+                  color: "#ffffff",
+                  border: "2px solid rgba(255,255,255,0.8)",
+                }}
               >
                 Join Free
               </Button>
@@ -97,150 +116,221 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Values strip */}
-      <section className="bg-background py-24 border-b border-border">
+      {/* ─── VALUE PROPS ──────────────────────── */}
+      <section className="py-24" style={{ backgroundColor: "#FAF7F2" }}>
         <div className="max-w-6xl mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-16">
+          <div className="text-center mb-16">
+            <span
+              className="text-xs font-bold tracking-[0.12em] uppercase"
+              style={{ color: "#C4622D" }}
+            >
+              Why HomeGrown
+            </span>
+            <h2
+              className="font-heading font-bold mt-2"
+              style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "#1a1a1a" }}
+            >
+              From the soil to your table.
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                num: "01",
+                icon: "🌱",
                 title: "Know your farmer",
                 body: "Every farm on HomeGrown has a profile with their story, their practices, and their land. You know exactly where your food comes from.",
               },
               {
-                num: "02",
+                icon: "📦",
                 title: "Flexible subscriptions",
                 body: "Weekly, biweekly, or monthly. Pause whenever life gets busy. Cancel anytime. Your schedule, your terms.",
               },
               {
-                num: "03",
+                icon: "🤝",
                 title: "Fair for everyone",
                 body: "Farmers keep more of what they earn. You pay less than specialty grocery. No middlemen, no markups.",
               },
-            ].map((f) => (
-              <div key={f.num}>
-                <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-4">
-                  {f.num}
+            ].map((v) => (
+              <div
+                key={v.title}
+                className="rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-1"
+                style={{
+                  background: "#ffffff",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+                }}
+              >
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-5"
+                  style={{ backgroundColor: "#FDF3E3", color: "#2D5016" }}
+                >
+                  {v.icon}
+                </div>
+                <h3
+                  className="font-heading font-bold text-lg mb-3"
+                  style={{ color: "#1a1a1a" }}
+                >
+                  {v.title}
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: "#6b6b6b" }}>
+                  {v.body}
                 </p>
-                <h3 className="font-heading text-xl font-semibold text-foreground mb-3">{f.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{f.body}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="bg-muted/50 py-24 border-b border-border">
+      {/* ─── HOW IT WORKS ─────────────────────── */}
+      <section
+        className="py-24 border-y"
+        style={{ backgroundColor: "#ffffff", borderColor: "#e8e2d9" }}
+      >
         <div className="max-w-6xl mx-auto px-6">
-          <div className="mb-14">
-            <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-3">
+          <div className="text-center mb-16">
+            <span
+              className="text-xs font-bold tracking-[0.12em] uppercase"
+              style={{ color: "#C4622D" }}
+            >
               How it works
-            </p>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground">
+            </span>
+            <h2
+              className="font-heading font-bold mt-2"
+              style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "#1a1a1a" }}
+            >
               Fresh food in three steps.
             </h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+
+          <div className="grid md:grid-cols-3 gap-8 text-center">
             {[
               {
-                step: "1",
+                num: "01",
+                icon: "🗺️",
                 title: "Browse local farms",
                 body: "Search farms near you. Read their story, see their practices, explore what they grow.",
               },
               {
-                step: "2",
+                num: "02",
+                icon: "🛒",
                 title: "Pick a plan",
                 body: "Choose a weekly veggie box, a monthly meat share, or whatever fits your household.",
               },
               {
-                step: "3",
+                num: "03",
+                icon: "🚚",
                 title: "Get deliveries",
                 body: "Your farmer prepares your box and delivers it on schedule. Pause or cancel any time.",
               },
             ].map((s) => (
-              <div key={s.step} className="bg-card rounded-xl p-8 border border-border">
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center mb-5"
-                  style={{ backgroundColor: "rgba(196,98,45,0.1)" }}
+              <div key={s.num} className="px-4">
+                <p
+                  className="font-heading font-bold mb-4 opacity-70"
+                  style={{ fontSize: "3.5rem", color: "#D4A96A", lineHeight: 1 }}
                 >
-                  <span className="text-xs font-bold" style={{ color: "#C4622D" }}>
-                    {s.step}
-                  </span>
+                  {s.num}
+                </p>
+                <div
+                  className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl mx-auto mb-5"
+                  style={{ backgroundColor: "#2D5016", color: "#ffffff" }}
+                >
+                  {s.icon}
                 </div>
-                <h3 className="font-semibold text-foreground mb-2">{s.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{s.body}</p>
+                <h3 className="font-heading font-bold text-lg mb-2" style={{ color: "#1a1a1a" }}>
+                  {s.title}
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: "#6b6b6b" }}>
+                  {s.body}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Newsletter — forest green section */}
-      <section
-        className="py-24"
-        style={{ backgroundColor: "#2D5016" }}
-      >
+      {/* ─── NEWSLETTER ───────────────────────── */}
+      <section className="py-24" style={{ backgroundColor: "#2D5016" }}>
         <div className="max-w-6xl mx-auto px-6">
-          <div className="max-w-xl mx-auto text-center">
-            <p
-              className="text-xs font-semibold tracking-widest uppercase mb-4"
-              style={{ color: "rgba(212,169,106,0.9)" }}
+          <div className="max-w-2xl mx-auto text-center">
+            <span
+              className="text-xs font-bold tracking-[0.12em] uppercase"
+              style={{ color: "#D4A96A" }}
             >
               Stay in the loop
-            </p>
+            </span>
             <h2
-              className="font-heading text-3xl md:text-4xl font-bold mb-4 leading-tight"
-              style={{ color: "#FAF7F2" }}
+              className="font-heading font-bold mt-2 mb-3"
+              style={{ fontSize: "clamp(2rem, 4vw, 3rem)", color: "#ffffff" }}
             >
               From the farm, to your inbox.
             </h2>
-            <p className="mb-8 leading-relaxed" style={{ color: "rgba(250,247,242,0.7)" }}>
-              Seasonal finds, farm stories, and early access. No spam.
+            <p className="mb-8 leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>
+              Seasonal finds, farm stories, and early access to new products.
             </p>
 
-            <form onSubmit={handleWaitlist} className="flex gap-2 max-w-sm mx-auto">
-              <Input
+            <form
+              onSubmit={handleWaitlist}
+              className="flex gap-2 justify-center flex-wrap"
+            >
+              <input
                 type="email"
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-white/20 text-foreground"
-                style={{ backgroundColor: "rgba(250,247,242,0.1)", color: "#FAF7F2" }}
+                className="rounded-full px-5 py-3 text-sm outline-none w-72"
+                style={{
+                  background: "rgba(255,255,255,0.12)",
+                  border: "1.5px solid rgba(255,255,255,0.25)",
+                  color: "#ffffff",
+                }}
               />
               <Button
                 type="submit"
                 disabled={submitting}
-                className="whitespace-nowrap rounded-full px-6 font-semibold"
+                className="rounded-full px-7 font-semibold border-0"
                 style={{ backgroundColor: "#D4A96A", color: "#1e3a0e" }}
               >
                 {submitting ? "Joining…" : "Subscribe"}
               </Button>
             </form>
+            <p className="mt-4 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+              No spam. Unsubscribe anytime. We only send things worth reading.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Farmer CTA */}
-      <section className="bg-background py-24 border-t border-border">
+      {/* ─── FARMER CTA ───────────────────────── */}
+      <section className="py-24" style={{ backgroundColor: "#FAF7F2" }}>
         <div className="max-w-6xl mx-auto px-6">
           <div className="max-w-xl">
-            <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-4">
+            <span
+              className="text-xs font-bold tracking-[0.12em] uppercase"
+              style={{ color: "#C4622D" }}
+            >
               For farmers
-            </p>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-4 leading-tight">
+            </span>
+            <h2
+              className="font-heading font-bold mt-2 mb-4 leading-tight"
+              style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)", color: "#1a1a1a" }}
+            >
               Grow your community,<br />not just your crops.
             </h2>
-            <p className="text-muted-foreground mb-8 leading-relaxed">
-              List your farm, set up subscription plans, and start building direct
-              relationships with customers who value what you do. Free to join.
+            <p className="mb-8 leading-relaxed" style={{ color: "#6b6b6b" }}>
+              List your farm, set up subscription plans, and start building
+              direct relationships with customers who value what you do.
+              Free to join. No commission until you&apos;re ready.
             </p>
             <Link href="/register?role=Farmer">
               <Button
                 size="lg"
-                className="rounded-full px-8 font-semibold"
-                style={{ backgroundColor: "#2D5016", color: "#FAF7F2" }}
+                className="rounded-full px-8 font-semibold border-0 transition-all duration-300 hover:-translate-y-0.5"
+                style={{
+                  backgroundColor: "#2D5016",
+                  color: "#ffffff",
+                  boxShadow: "0 6px 20px rgba(45,80,22,0.35)",
+                }}
               >
                 List your farm
               </Button>
@@ -249,18 +339,113 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer style={{ backgroundColor: "#1e3a0e" }} className="py-10">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M14 3C14 3 5 9 5 17C5 21.418 9.134 25 14 25C18.866 25 23 21.418 23 17C23 9 14 3 14 3Z" fill="#87A878"/>
-              <path d="M14 8C14 8 9 12 9 17C9 19.761 11.239 22 14 22C16.761 22 19 19.761 19 17C19 12 14 8 14 8Z" fill="#FAF7F2" opacity="0.5"/>
-            </svg>
-            <span className="font-heading font-bold" style={{ color: "#FAF7F2" }}>HomeGrown</span>
+      {/* ─── FOOTER ───────────────────────────── */}
+      <footer style={{ backgroundColor: "#1a2e0a", color: "rgba(250,247,242,0.75)" }}>
+        <div className="max-w-6xl mx-auto px-6 pt-16 pb-0">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12">
+            {/* Brand col */}
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-2.5 mb-3">
+                <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+                  <path d="M14 3C14 3 5 9 5 17C5 21.418 9.134 25 14 25C18.866 25 23 21.418 23 17C23 9 14 3 14 3Z" fill="#87A878"/>
+                  <path d="M14 8C14 8 9 12 9 17C9 19.761 11.239 22 14 22C16.761 22 19 19.761 19 17C19 12 14 8 14 8Z" fill="#FAF7F2" opacity="0.5"/>
+                </svg>
+                <span className="font-heading text-xl font-bold" style={{ color: "#FAF7F2" }}>HomeGrown</span>
+              </div>
+              <p className="font-heading italic mb-2" style={{ color: "#D4A96A", fontSize: "1rem" }}>
+                From the soil to your table.
+              </p>
+              <p className="text-sm leading-relaxed max-w-xs">
+                Connecting local farmers and artisans with communities who care about where their food comes from.
+              </p>
+            </div>
+
+            {/* Explore col */}
+            <div>
+              <h6
+                className="text-xs font-bold tracking-[0.1em] uppercase mb-4"
+                style={{ color: "#FAF7F2" }}
+              >
+                Explore
+              </h6>
+              <ul className="space-y-2 text-sm">
+                {[
+                  { label: "Browse Farms", href: "/farms" },
+                  { label: "Sign In", href: "/login" },
+                  { label: "Sell on HomeGrown", href: "/register?role=Farmer" },
+                  { label: "My Subscriptions", href: "/my-subscriptions" },
+                ].map((l) => (
+                  <li key={l.label}>
+                    <Link
+                      href={l.href}
+                      className="transition-colors hover:text-[#D4A96A]"
+                      style={{ color: "rgba(250,247,242,0.65)" }}
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Newsletter col */}
+            <div>
+              <h6
+                className="text-xs font-bold tracking-[0.1em] uppercase mb-4"
+                style={{ color: "#FAF7F2" }}
+              >
+                Stay in the Loop
+              </h6>
+              <p className="text-sm mb-3 leading-relaxed">
+                Seasonal picks, farm stories, and recipes — delivered weekly.
+              </p>
+              <form onSubmit={handleWaitlist} className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="rounded-full flex-1 px-4 py-2 text-sm outline-none min-w-0"
+                  style={{
+                    background: "rgba(255,255,255,0.08)",
+                    border: "1.5px solid rgba(255,255,255,0.15)",
+                    color: "#ffffff",
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="rounded-full px-4 py-2 text-sm font-semibold shrink-0"
+                  style={{ backgroundColor: "#D4A96A", color: "#1e3a0e" }}
+                >
+                  Go
+                </button>
+              </form>
+            </div>
           </div>
-          <p className="text-sm" style={{ color: "rgba(250,247,242,0.5)" }}>
-            © 2026 HomeGrown. From the soil to your table.
-          </p>
+        </div>
+
+        <div
+          className="border-t"
+          style={{ borderColor: "rgba(255,255,255,0.08)" }}
+        >
+          <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <p className="text-xs" style={{ color: "rgba(250,247,242,0.4)" }}>
+              © 2026 HomeGrown. All rights reserved. Made with care for local food systems.
+            </p>
+            <div className="flex gap-5">
+              {["Privacy Policy", "Terms of Service"].map((l) => (
+                <a
+                  key={l}
+                  href="#"
+                  className="text-xs transition-colors hover:text-[rgba(250,247,242,0.7)]"
+                  style={{ color: "rgba(250,247,242,0.4)" }}
+                >
+                  {l}
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </footer>
     </>
