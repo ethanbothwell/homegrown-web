@@ -87,7 +87,7 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <Link href="/farms" className="w-full sm:w-auto">
+            <Link href="/register" className="w-full sm:w-auto">
               <Button
                 size="lg"
                 className="w-full sm:w-auto rounded-full px-8 font-semibold text-base border-0 transition-all duration-300 hover:-translate-y-0.5"
@@ -97,10 +97,10 @@ export default function HomePage() {
                   boxShadow: "0 4px 16px rgba(196,98,45,0.4)",
                 }}
               >
-                Browse Farms
+                Join the waitlist
               </Button>
             </Link>
-            <Link href="/register" className="w-full sm:w-auto">
+            <Link href="/demo" className="w-full sm:w-auto">
               <Button
                 size="lg"
                 className="w-full sm:w-auto rounded-full px-8 font-semibold text-base transition-all duration-300 hover:bg-white/20"
@@ -110,7 +110,7 @@ export default function HomePage() {
                   border: "2px solid rgba(255,255,255,0.8)",
                 }}
               >
-                Join Free
+                Preview the app
               </Button>
             </Link>
           </div>
@@ -250,7 +250,9 @@ export default function HomePage() {
       </section>
 
       {/* ─── COMMUNITY WAITLIST ───────────────── */}
-      <WaitlistProgress />
+      <div id="waitlist">
+        <WaitlistProgress />
+      </div>
 
       {/* ─── NEWSLETTER ───────────────────────── */}
       <section className="py-24" style={{ backgroundColor: "#2D5016" }}>

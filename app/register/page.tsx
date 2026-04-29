@@ -137,11 +137,11 @@ function ShareScreen({ result, name }: { result: WaitlistResult; name: string })
       </div>
 
       <Link
-        href="/farms"
+        href="/#waitlist"
         className="text-sm font-medium hover:underline"
         style={{ color: "#6b6b6b" }}
       >
-        Browse farms in the meantime →
+        See your community's progress →
       </Link>
     </div>
   );
@@ -166,11 +166,14 @@ function RegisterForm() {
     e.preventDefault();
     setLoading(true);
     try {
+      const fromDemo = params.get("from") === "demo";
       const result = await register(email, password, name, role, community || undefined);
       if (result.community) {
         setWaitlistResult(result);
+      } else if (fromDemo) {
+        // Came from demo — send to waitlist section
+        window.location.href = "/#waitlist";
       } else {
-        // No community selected — go straight to the app
         toast.success("Account created.");
         window.location.href = role === "Farmer" ? "/dashboard" : "/farms";
       }
