@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { farms as farmsApi, subscriptionPlans as plansApi, Farm, SubscriptionPlan } from "@/lib/api";
+import { farms as farmsApi, subscriptionPlans as plansApi, products as productsApi, Farm, SubscriptionPlan, Product } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2, X } from "lucide-react";
@@ -21,7 +21,18 @@ export default function DashboardPage() {
 
   const [farm, setFarm] = useState<Farm | null>(null);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [myProducts, setMyProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [productName, setProductName]     = useState("");
+  const [productDesc, setProductDesc]     = useState("");
+  const [productCat, setProductCat]       = useState("Produce");
+  const [productPrice, setProductPrice]   = useState("");
+  const [productUnit, setProductUnit]     = useState("");
+  const [productImage, setProductImage]   = useState("");
+  const [productStock, setProductStock]   = useState(true);
+  const [savingProduct, setSavingProduct] = useState(false);
 
   const [editingFarm, setEditingFarm] = useState(false);
   const [farmName, setFarmName] = useState("");
@@ -56,7 +67,9 @@ export default function DashboardPage() {
         setFarmDesc(f.bio ?? "");
         setFarmLocation(f.location ?? "");
         setFarmImage(f.imageUrl ?? "");
+        return productsApi.list();
       })
+      .then((prods) => setMyProducts(prods.filter((p) => p.farmId !== undefined)))
       .catch(() => setEditingFarm(true))
       .finally(() => setLoading(false));
   }, [user, authLoading, router]);
@@ -138,6 +151,42 @@ export default function DashboardPage() {
       toast.error(err instanceof Error ? err.message : "Failed to create plan.");
     } finally {
       setSavingPlan(false);
+    }
+  }
+
+  async function createProduct(e: React.SyntheticEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSavingProduct(true);
+    try {
+      const created = await productsApi.create({
+        name:        productName,
+        description: productDesc || undefined,
+        category:    productCat,
+        price:       parseFloat(productPrice),
+        unit:        productUnit || undefined,
+        imageUrl:    productImage || undefined,
+        inStock:     productStock,
+      });
+      setMyProducts((prev) => [created, ...prev]);
+      setProductName(""); setProductDesc(""); setProductPrice("");
+      setProductUnit(""); setProductImage(""); setProductStock(true);
+      setShowProductForm(false);
+      toast.success("Product listed.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create product.");
+    } finally {
+      setSavingProduct(false);
+    }
+  }
+
+  async function deleteProduct(id: string) {
+    if (!confirm("Remove this product from the marketplace?")) return;
+    try {
+      await productsApi.delete(id);
+      setMyProducts((prev) => prev.filter((p) => p.id !== id));
+      toast.success("Product removed.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed.");
     }
   }
 
@@ -378,6 +427,133 @@ export default function DashboardPage() {
               ))}
             </div>
           </section>
+        )}
+
+        {/* ── Products ── */}
+        {farm && (
+          <>
+            <Separator />
+            <section>
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="font-heading text-xl font-semibold text-foreground">Marketplace listings</h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Individual items shown on the{" "}
+                    <a href="/marketplace" className="underline underline-offset-2">marketplace</a>.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-5"
+                  onClick={() => setShowProductForm(true)}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1.5" />
+                  Add product
+                </Button>
+              </div>
+
+              {showProductForm && (
+                <div className="bg-card border border-border rounded-xl p-6 mb-6">
+                  <h3 className="font-heading font-semibold text-foreground mb-5">New product</h3>
+                  <form onSubmit={createProduct} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <Label htmlFor="prname">Product name *</Label>
+                        <Input id="prname" value={productName} onChange={(e) => setProductName(e.target.value)} required placeholder="e.g. Dozen Fresh Eggs" className="bg-background" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="prcat">Category *</Label>
+                        <select
+                          id="prcat"
+                          value={productCat}
+                          onChange={(e) => setProductCat(e.target.value)}
+                          className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          {["Farm Box","Eggs","Bread","Pastries","Produce","Dairy","Meat","Honey"].map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="prprice">Price (USD) *</Label>
+                        <Input id="prprice" type="number" min="0.01" step="0.01" value={productPrice} onChange={(e) => setProductPrice(e.target.value)} required placeholder="8.00" className="bg-background" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="prunit">Unit</Label>
+                        <Input id="prunit" value={productUnit} onChange={(e) => setProductUnit(e.target.value)} placeholder="e.g. dozen, lb, loaf" className="bg-background" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="primg">Image URL</Label>
+                        <Input id="primg" value={productImage} onChange={(e) => setProductImage(e.target.value)} placeholder="https://…" className="bg-background" />
+                      </div>
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <Label htmlFor="prdesc">Description</Label>
+                        <Input id="prdesc" value={productDesc} onChange={(e) => setProductDesc(e.target.value)} placeholder="Short description…" className="bg-background" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          id="prstock"
+                          type="checkbox"
+                          checked={productStock}
+                          onChange={(e) => setProductStock(e.target.checked)}
+                          className="h-4 w-4 accent-primary"
+                        />
+                        <Label htmlFor="prstock" className="cursor-pointer">In stock</Label>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <Button type="submit" disabled={savingProduct} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6">
+                        {savingProduct ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add listing"}
+                      </Button>
+                      <Button type="button" variant="ghost" onClick={() => setShowProductForm(false)}>Cancel</Button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {myProducts.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No products listed yet.</p>
+                )}
+                {myProducts.map((p) => (
+                  <div
+                    key={p.id}
+                    className="bg-card border border-border rounded-xl px-5 py-4 flex items-center justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-4 min-w-0">
+                      {p.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.imageUrl} alt={p.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg shrink-0 flex items-center justify-center bg-muted text-muted-foreground text-xs font-medium">
+                          {p.category.slice(0, 2)}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-foreground truncate">{p.name}</span>
+                          <Badge variant="secondary" className="text-xs rounded-full shrink-0">{p.category}</Badge>
+                          {!p.inStock && <Badge variant="outline" className="text-xs rounded-full text-muted-foreground shrink-0">Out of stock</Badge>}
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                          ${p.price.toFixed(2)}{p.unit ? ` / ${p.unit}` : ""}
+                          {p.description && ` · ${p.description}`}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-muted-foreground hover:text-destructive shrink-0"
+                      onClick={() => deleteProduct(p.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </>
         )}
       </main>
     </>

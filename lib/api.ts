@@ -258,6 +258,50 @@ export const checkout = {
     }),
 };
 
+export interface Product {
+  id: string;
+  farmId: string;
+  farmName: string;
+  name: string;
+  description?: string;
+  category: string;
+  price: number;
+  unit?: string;
+  imageUrl?: string;
+  inStock: boolean;
+  tags?: string;
+}
+
+// ─── Products ─────────────────────────────────────────────────────────────
+export const products = {
+  list: (params?: {
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    inStockOnly?: boolean;
+    sort?: string;
+  }) => {
+    const q = new URLSearchParams();
+    if (params?.category)           q.set("category",    params.category);
+    if (params?.minPrice != null)   q.set("minPrice",    String(params.minPrice));
+    if (params?.maxPrice != null)   q.set("maxPrice",    String(params.maxPrice));
+    if (params?.inStockOnly)        q.set("inStockOnly", "true");
+    if (params?.sort)               q.set("sort",        params.sort);
+    const qs = q.toString();
+    return request<Product[]>(`/api/products${qs ? `?${qs}` : ""}`);
+  },
+  get:    (id: string) => request<Product>(`/api/products/${id}`),
+  create: (data: {
+    name: string; description?: string; category: string;
+    price: number; unit?: string; imageUrl?: string; inStock?: boolean; tags?: string;
+  }) => request<Product>("/api/products", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<{
+    name: string; description: string; category: string;
+    price: number; unit: string; imageUrl: string; inStock: boolean; tags: string;
+  }>) => request<Product>(`/api/products/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  delete: (id: string) => request<void>(`/api/products/${id}`, { method: "DELETE" }),
+};
+
 // ─── Waitlist ─────────────────────────────────────────────────────────────
 export const waitlist = {
   getStats: () => request<WaitlistStats>("/api/waitlist/stats"),

@@ -39,10 +39,11 @@ export function Nav() {
   }, [mobileOpen]);
 
   const navLinks = [
-    { label: "Home", href: "/" },
+    { label: "Home",        href: "/" },
+    { label: "Marketplace", href: "/marketplace" },
     { label: "Browse Farms", href: "/farms" },
-    ...(user?.role === "Farmer" ? [{ label: "Dashboard", href: "/dashboard" }] : []),
-    ...(user?.role === "Buyer" ? [{ label: "My Subscriptions", href: "/my-subscriptions" }] : []),
+    ...(user?.role === "Farmer" ? [{ label: "Dashboard",        href: "/dashboard" }]        : []),
+    ...(user?.role === "Buyer"  ? [{ label: "My Subscriptions", href: "/my-subscriptions" }] : []),
   ];
 
   return (
@@ -121,6 +122,11 @@ export function Nav() {
 
           {/* ── Desktop right nav ── */}
           <nav className="hidden md:flex items-center gap-1">
+            <Link href="/marketplace">
+              <Button variant="ghost" size="sm" className="font-normal hover:bg-white/10" style={{ color: "rgba(250,247,242,0.85)" }}>
+                Marketplace
+              </Button>
+            </Link>
             <Link href="/farms">
               <Button variant="ghost" size="sm" className="font-normal hover:bg-white/10" style={{ color: "rgba(250,247,242,0.85)" }}>
                 Browse Farms
