@@ -1,13 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import L from "leaflet";
 import { farms as farmsApi, type Farm } from "@/lib/api";
 import { MapPin, Navigation2, Search, Star, X } from "lucide-react";
 
-// ─── Oregon city coords ───────────────────────────────────────────────────────
+// ─── Oregon city coordinates ──────────────────────────────────────────────────
 
 const CITY_COORDS: Record<string, [number, number]> = {
   Portland:  [45.5051, -122.6750],
@@ -23,62 +20,62 @@ const CITY_COORDS: Record<string, [number, number]> = {
 const DEFAULT_CENTER: [number, number] = [44.4, -122.9];
 const DEFAULT_ZOOM = 7;
 
-// ─── Mock farms (fallback when API is empty / auth-walled) ────────────────────
+// ─── Mock farms ───────────────────────────────────────────────────────────────
 
 const MOCK_FARMS: Farm[] = [
   {
-    id: "f1", name: "Sunridge Farm",
-    location: "Corvallis, OR", city: "Corvallis", state: "OR",
-    bio: "Three generations of sustainable vegetable farming in the Willamette Valley. Certified organic since 1998.",
+    id: "f1", name: "Sunridge Farm", location: "Corvallis, OR",
+    city: "Corvallis", state: "OR",
+    bio: "Three generations of sustainable vegetable farming in the Willamette Valley.",
     practices: [{ id: "1", name: "Certified Organic" }, { id: "2", name: "No-Spray" }, { id: "3", name: "Pasture-Raised" }],
     imageUrl: "https://images.unsplash.com/photo-1500076656116-558758c991c1?w=500&q=80",
     rating: 4.9, reviewCount: 42, ownerName: "Jake Sunridge", subscriptionPlans: [],
   },
   {
-    id: "f2", name: "Willamette Bakehouse",
-    location: "Salem, OR", city: "Salem", state: "OR",
-    bio: "Artisan bread and pastries made with heritage grains from local farms. Wood-fired oven, baked fresh daily.",
+    id: "f2", name: "Willamette Bakehouse", location: "Salem, OR",
+    city: "Salem", state: "OR",
+    bio: "Artisan bread and pastries made with heritage grains. Wood-fired oven, baked fresh daily.",
     practices: [{ id: "4", name: "Heritage Grains" }, { id: "5", name: "Wood-Fired" }, { id: "6", name: "Small Batch" }],
     imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&q=80",
     rating: 4.8, reviewCount: 28, ownerName: "Marie Dupont", subscriptionPlans: [],
   },
   {
-    id: "f3", name: "Cascade Creamery",
-    location: "Portland, OR", city: "Portland", state: "OR",
-    bio: "Small-batch raw milk dairy. Our Jersey cows graze on 40 acres of coastal pasture year-round.",
+    id: "f3", name: "Cascade Creamery", location: "Portland, OR",
+    city: "Portland", state: "OR",
+    bio: "Small-batch raw milk dairy. Jersey cows on 40 acres of coastal pasture year-round.",
     practices: [{ id: "7", name: "Raw Milk" }, { id: "8", name: "Grass-Fed" }, { id: "9", name: "Humane Certified" }],
     imageUrl: "https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=500&q=80",
     rating: 4.7, reviewCount: 35, ownerName: "Tom Cascade", subscriptionPlans: [],
   },
   {
-    id: "f4", name: "Blue Heron Orchard",
-    location: "Eugene, OR", city: "Eugene", state: "OR",
-    bio: "Heritage apple and pear varieties grown without synthetic pesticides. U-pick available in season.",
+    id: "f4", name: "Blue Heron Orchard", location: "Eugene, OR",
+    city: "Eugene", state: "OR",
+    bio: "Heritage apple and pear varieties grown without synthetic pesticides.",
     practices: [{ id: "10", name: "No Pesticides" }, { id: "11", name: "Heritage Varieties" }, { id: "12", name: "U-Pick" }],
     imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500&q=80",
     rating: 4.9, reviewCount: 61, ownerName: "Helen Blue", subscriptionPlans: [],
   },
   {
-    id: "f5", name: "Rogue Valley Honey Co.",
-    location: "Medford, OR", city: "Medford", state: "OR",
-    bio: "Raw wildflower honey from hives scattered across the Rogue Valley. Seasonal varietal releases.",
-    practices: [{ id: "13", name: "Raw Honey" }, { id: "14", name: "Wildflower" }, { id: "15", name: "Small Batch" }],
+    id: "f5", name: "Rogue Valley Honey Co.", location: "Medford, OR",
+    city: "Medford", state: "OR",
+    bio: "Raw wildflower honey from hives scattered across the Rogue Valley.",
+    practices: [{ id: "13", name: "Raw Honey" }, { id: "14", name: "Wildflower" }],
     imageUrl: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=500&q=80",
     rating: 4.8, reviewCount: 19, ownerName: "Ben Rogue", subscriptionPlans: [],
   },
   {
-    id: "f6", name: "Coastal Roots Farm",
-    location: "Newport, OR", city: "Newport", state: "OR",
-    bio: "Ocean-view market garden growing cold-hardy greens, root vegetables, and cut flowers year-round.",
-    practices: [{ id: "16", name: "No-Spray" }, { id: "17", name: "Market Garden" }, { id: "18", name: "Cut Flowers" }],
+    id: "f6", name: "Coastal Roots Farm", location: "Newport, OR",
+    city: "Newport", state: "OR",
+    bio: "Ocean-view market garden growing cold-hardy greens and root vegetables.",
+    practices: [{ id: "15", name: "No-Spray" }, { id: "16", name: "Market Garden" }],
     imageUrl: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=500&q=80",
     rating: 4.6, reviewCount: 14, ownerName: "Nina Coastal", subscriptionPlans: [],
   },
   {
-    id: "f7", name: "Painted Hills Beef",
-    location: "Bend, OR", city: "Bend", state: "OR",
-    bio: "100% grass-fed and finished beef raised on high-desert rangeland. No hormones, no antibiotics.",
-    practices: [{ id: "19", name: "Grass-Fed" }, { id: "20", name: "No Hormones" }, { id: "21", name: "Free Range" }],
+    id: "f7", name: "Painted Hills Beef", location: "Bend, OR",
+    city: "Bend", state: "OR",
+    bio: "100% grass-fed and finished beef raised on high-desert rangeland.",
+    practices: [{ id: "17", name: "Grass-Fed" }, { id: "18", name: "No Hormones" }, { id: "19", name: "Free Range" }],
     imageUrl: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=500&q=80",
     rating: 4.7, reviewCount: 23, ownerName: "Clay Harris", subscriptionPlans: [],
   },
@@ -102,19 +99,19 @@ function deriveCat(farm: Farm): string {
   const p = farm.practices.map((x) => x.name.toLowerCase()).join(" ");
   const n = farm.name.toLowerCase();
   if (p.includes("honey") || n.includes("honey")) return "Honey";
-  if (p.includes("raw milk") || p.includes("dairy") || p.includes("grass-fed") || n.includes("creamery") || n.includes("dairy")) return "Dairy & Eggs";
-  if (p.includes("grain") || p.includes("baked") || p.includes("wood-fired") || n.includes("bake") || n.includes("bread")) return "Bread";
-  if (p.includes("beef") || p.includes("pork") || p.includes("poultry") || p.includes("meat") || n.includes("beef") || n.includes("meat")) return "Meat";
+  if (p.includes("raw milk") || p.includes("grass-fed") || n.includes("creamery") || n.includes("dairy")) return "Dairy & Eggs";
+  if (p.includes("grain") || p.includes("wood-fired") || n.includes("bake") || n.includes("bread")) return "Bread";
+  if (p.includes("beef") || p.includes("pork") || p.includes("poultry") || n.includes("beef") || n.includes("meat")) return "Meat";
   if (p.includes("orchard") || p.includes("apple") || p.includes("pear") || n.includes("orchard")) return "Orchard";
   return "Produce";
 }
 
 function getCoords(farm: Farm, index: number): [number, number] {
-  const cityKey = Object.keys(CITY_COORDS).find(
+  const key = Object.keys(CITY_COORDS).find(
     (k) => farm.city?.includes(k) || farm.location?.includes(k)
   );
-  if (cityKey) {
-    const [lat, lng] = CITY_COORDS[cityKey];
+  if (key) {
+    const [lat, lng] = CITY_COORDS[key];
     return [lat + index * 0.0015, lng + index * 0.002];
   }
   return [44.3 + (index % 5) * 0.4 - 1.0, -122.8 + (index % 3) * 0.6 - 0.9];
@@ -126,153 +123,195 @@ interface FarmWithCoords extends Farm {
   category: string;
 }
 
-// ─── Injected Leaflet styles ──────────────────────────────────────────────────
+// ─── CSS for map + custom markers ─────────────────────────────────────────────
 
 const MAP_CSS = `
+/* Leaflet base reset */
+.leaflet-container { font-family: inherit; background: #e8e2d9; }
 /* Custom pin */
-.hg-pin { position: relative; width: 42px; height: 42px; cursor: pointer; }
+.hg-pin { position: relative; width: 40px; height: 40px; cursor: pointer; }
 .hg-pin-ring {
-  position: absolute; inset: -2px; border-radius: 50%;
+  position: absolute; inset: -3px; border-radius: 50%;
   border: 2.5px solid var(--c, #2D5016);
   animation: hg-pulse 2.6s ease-out infinite;
   pointer-events: none;
 }
 @keyframes hg-pulse {
-  0%   { transform: scale(0.75); opacity: 0.9; }
-  65%  { transform: scale(2.1);  opacity: 0;   }
-  100% { transform: scale(2.1);  opacity: 0;   }
+  0%   { transform: scale(0.7);  opacity: 0.85; }
+  65%  { transform: scale(2.15); opacity: 0;    }
+  100% { transform: scale(2.15); opacity: 0;    }
 }
 .hg-pin-body {
   position: absolute; inset: 3px; border-radius: 50%;
   background: var(--c, #2D5016);
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.22), 0 0 0 2.5px #fff;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.22), 0 0 0 2.5px #fff;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.hg-pin:hover .hg-pin-body { transform: scale(1.22); box-shadow: 0 4px 18px rgba(0,0,0,0.3), 0 0 0 2.5px #fff; }
-.hg-pin.hg-selected .hg-pin-body { background: #C4622D !important; transform: scale(1.28); box-shadow: 0 6px 20px rgba(196,98,45,0.4), 0 0 0 3px #fff; }
-/* Leaflet popup overrides */
-.leaflet-popup-content-wrapper {
-  border-radius: 16px !important;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.14) !important;
-  padding: 0 !important; overflow: hidden;
-  border: 1px solid #e8e2d9;
-}
-.leaflet-popup-content { margin: 0 !important; width: 264px !important; }
+.hg-pin:hover .hg-pin-body { transform: scale(1.2); box-shadow: 0 4px 16px rgba(0,0,0,0.3), 0 0 0 2.5px #fff; }
+.hg-pin.sel .hg-pin-body { background: #C4622D !important; transform: scale(1.28); box-shadow: 0 6px 20px rgba(196,98,45,0.4), 0 0 0 3px #fff; }
+/* Popup overrides */
+.leaflet-popup-content-wrapper { border-radius: 16px !important; box-shadow: 0 12px 40px rgba(0,0,0,0.14) !important; padding: 0 !important; overflow: hidden; border: 1px solid #e8e2d9; }
+.leaflet-popup-content { margin: 0 !important; width: 260px !important; }
 .leaflet-popup-tip-container { display: none; }
 .leaflet-popup-close-button { display: none !important; }
-.leaflet-container { font-family: inherit; }
+.hg-popup-img { width: 100%; height: 130px; object-fit: cover; display: block; }
+.hg-popup-body { padding: 12px 14px 14px; }
+.hg-popup-name { font-weight: 700; font-size: 14px; color: #1a1a1a; margin: 0 0 3px; }
+.hg-popup-loc { font-size: 12px; color: #9b9b9b; margin: 0 0 6px; display: flex; align-items: center; gap: 3px; }
+.hg-popup-bio { font-size: 11.5px; color: #6b6b6b; line-height: 1.55; margin: 0 0 8px; }
+.hg-popup-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.hg-popup-tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+.hg-popup-rating { float: right; font-size: 12px; color: #6b6b6b; font-weight: 600; }
 `;
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function FlyTo({ target }: { target: { lat: number; lng: number; zoom: number } | null }) {
-  const map = useMap();
-  const prev = useRef<typeof target>(null);
-  useEffect(() => {
-    if (!target || target === prev.current) return;
-    prev.current = target;
-    map.flyTo([target.lat, target.lng], target.zoom, { animate: true, duration: 0.85 });
-  }, [map, target]);
-  return null;
-}
-
-function UserDot({ pos }: { pos: [number, number] | null }) {
-  const map = useMap();
-  const dot = useRef<L.CircleMarker | null>(null);
-  useEffect(() => {
-    if (!pos) return;
-    dot.current?.remove();
-    dot.current = L.circleMarker(pos, {
-      radius: 9, fillColor: "#4285F4", color: "#fff", weight: 2.5, fillOpacity: 1,
-    }).addTo(map);
-    return () => { dot.current?.remove(); };
-  }, [map, pos]);
-  return null;
-}
-
-// ─── Main export ──────────────────────────────────────────────────────────────
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export default function FarmMap() {
+  const mapDivRef  = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapRef     = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const markersRef = useRef<Record<string, any>>({});
+
   const [allFarms, setAllFarms]     = useState<FarmWithCoords[]>([]);
   const [loading, setLoading]       = useState(true);
   const [query, setQuery]           = useState("");
   const [activeCat, setActiveCat]   = useState("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [hoveredId, setHoveredId]   = useState<string | null>(null);
-  const [flyTarget, setFlyTarget]   = useState<{ lat: number; lng: number; zoom: number } | null>(null);
-  const [userPos, setUserPos]       = useState<[number, number] | null>(null);
   const [mobileView, setMobileView] = useState<"map" | "list">("map");
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Load farms
+  // ── 1. Load farms ──────────────────────────────────────────────────────────
   useEffect(() => {
     farmsApi.list()
       .then((data) => {
-        const source = data.length ? data : MOCK_FARMS;
-        setAllFarms(source.map((f, i) => {
-          const [lat, lng] = getCoords(f, i);
-          return { ...f, lat, lng, category: deriveCat(f) };
-        }));
+        const src = data.length ? data : MOCK_FARMS;
+        setAllFarms(src.map((f, i) => ({ ...f, lat: getCoords(f, i)[0], lng: getCoords(f, i)[1], category: deriveCat(f) })));
       })
       .catch(() => {
-        setAllFarms(MOCK_FARMS.map((f, i) => {
-          const [lat, lng] = getCoords(f, i);
-          return { ...f, lat, lng, category: deriveCat(f) };
-        }));
+        setAllFarms(MOCK_FARMS.map((f, i) => ({ ...f, lat: getCoords(f, i)[0], lng: getCoords(f, i)[1], category: deriveCat(f) })));
       })
       .finally(() => setLoading(false));
   }, []);
 
-  // Geolocation
-  const locate = useCallback(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(({ coords }) => {
-      const pos: [number, number] = [coords.latitude, coords.longitude];
-      setUserPos(pos);
-      setFlyTarget({ lat: pos[0], lng: pos[1], zoom: 11 });
+  // ── 2. Init Leaflet map once DOM is ready ──────────────────────────────────
+  useEffect(() => {
+    if (!mapDivRef.current || mapRef.current) return;
+
+    // Dynamic import to avoid SSR
+    import("leaflet").then((L) => {
+      import("leaflet/dist/leaflet.css");
+
+      const map = L.map(mapDivRef.current!, {
+        center: DEFAULT_CENTER,
+        zoom: DEFAULT_ZOOM,
+        zoomControl: false,
+        scrollWheelZoom: true,
+      });
+
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+        { attribution: "© CARTO © OSM", maxZoom: 19 }
+      ).addTo(map);
+
+      L.control.zoom({ position: "bottomright" }).addTo(map);
+
+      mapRef.current = map;
     });
+
+    return () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
   }, []);
 
-  // Filtered list
-  const filtered = allFarms.filter((f) => {
-    const catOk = activeCat === "All" || f.category === activeCat;
-    const q = query.toLowerCase();
-    const textOk = !q
-      || f.name.toLowerCase().includes(q)
-      || f.location?.toLowerCase().includes(q)
-      || f.city?.toLowerCase().includes(q);
-    return catOk && textOk;
-  });
-
-  function selectFarm(farm: FarmWithCoords) {
-    setSelectedId(farm.id);
-    setFlyTarget({ lat: farm.lat, lng: farm.lng, zoom: 13 });
-    setMobileView("map");
-  }
-
-  // Scroll selected card into view
+  // ── 3. Sync markers whenever farms or selection changes ────────────────────
   useEffect(() => {
-    if (!selectedId) return;
+    if (!mapRef.current || !allFarms.length) return;
+
+    import("leaflet").then((L) => {
+      const map = mapRef.current;
+
+      // Remove old markers
+      Object.values(markersRef.current).forEach((m) => m.remove());
+      markersRef.current = {};
+
+      allFarms.forEach((farm) => {
+        const color = CAT_COLOR[farm.category] ?? "#2D5016";
+        const emoji = CAT_EMOJI[farm.category] ?? "🌱";
+        const isSel = selectedId === farm.id;
+
+        const icon = L.divIcon({
+          className: "",
+          html: `<div class="hg-pin${isSel ? " sel" : ""}" style="--c:${color}">
+            <div class="hg-pin-ring"></div>
+            <div class="hg-pin-body">${emoji}</div>
+          </div>`,
+          iconSize:    [40, 40],
+          iconAnchor:  [20, 20],
+          popupAnchor: [0, -24],
+        });
+
+        const imgHtml   = farm.imageUrl ? `<img class="hg-popup-img" src="${farm.imageUrl}" alt="${farm.name}" />` : "";
+        const bioHtml   = farm.bio ? `<p class="hg-popup-bio">${farm.bio.slice(0, 90)}${farm.bio.length > 90 ? "\u2026" : ""}</p>` : "";
+        const tagsHtml  = farm.practices.slice(0, 3).map((p) => `<span class="hg-popup-tag" style="background:${color}18;color:${color}">${p.name}</span>`).join("");
+        const popupHtml = `<div>${imgHtml}<div class="hg-popup-body"><span class="hg-popup-rating">⭐ ${farm.rating.toFixed(1)}</span><p class="hg-popup-name">${farm.name}</p><p class="hg-popup-loc">📍 ${farm.city || farm.location || ""}</p>${bioHtml}<div class="hg-popup-tags">${tagsHtml}</div></div></div>`;
+        const popup = L.popup({ closeButton: false, maxWidth: 280 }).setContent(popupHtml);
+
+        const marker = L.marker([farm.lat, farm.lng], { icon, riseOnHover: true })
+          .bindPopup(popup)
+          .addTo(map);
+
+        marker.on("click", () => {
+          setSelectedId(farm.id);
+        });
+
+        markersRef.current[farm.id] = marker;
+      });
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allFarms, selectedId]);
+
+  // ── 4. Open popup when farm selected ──────────────────────────────────────
+  useEffect(() => {
+    if (!selectedId || !mapRef.current) return;
+    const marker = markersRef.current[selectedId];
+    if (!marker) return;
+    marker.openPopup();
+    // Scroll the sidebar card into view
     listRef.current?.querySelector<HTMLElement>(`[data-id="${selectedId}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [selectedId]);
 
-  // Build Leaflet DivIcon
-  function makeIcon(farm: FarmWithCoords) {
-    const color  = CAT_COLOR[farm.category] ?? "#2D5016";
-    const emoji  = CAT_EMOJI[farm.category] ?? "🌱";
-    const sel    = selectedId === farm.id;
-    const hov    = hoveredId  === farm.id;
-    return L.divIcon({
-      className: "",
-      html: `<div class="hg-pin${sel ? " hg-selected" : ""}" style="--c:${color}"><div class="hg-pin-ring"></div><div class="hg-pin-body">${emoji}</div></div>`,
-      iconSize:   [42, 42],
-      iconAnchor: [21, 21],
-      popupAnchor:[0, -26],
+  // ── 5. Geolocation ─────────────────────────────────────────────────────────
+  const locate = useCallback(() => {
+    if (!navigator.geolocation || !mapRef.current) return;
+    navigator.geolocation.getCurrentPosition(({ coords }) => {
+      import("leaflet").then((L) => {
+        const map = mapRef.current;
+        map.flyTo([coords.latitude, coords.longitude], 11, { animate: true, duration: 0.9 });
+        L.circleMarker([coords.latitude, coords.longitude], {
+          radius: 9, fillColor: "#4285F4", color: "#fff", weight: 2.5, fillOpacity: 1,
+        }).addTo(map);
+      });
     });
-    void hov; // referenced above for future pulse tweak
+  }, []);
+
+  // ── 6. Click card → fly to farm ────────────────────────────────────────────
+  function selectFarm(farm: FarmWithCoords) {
+    setSelectedId(farm.id);
+    setMobileView("map");
+    mapRef.current?.flyTo([farm.lat, farm.lng], 13, { animate: true, duration: 0.85 });
   }
+
+  // ── Filtered list ──────────────────────────────────────────────────────────
+  const filtered = allFarms.filter((f) => {
+    const catOk  = activeCat === "All" || f.category === activeCat;
+    const q      = query.toLowerCase();
+    const textOk = !q || f.name.toLowerCase().includes(q) || f.location?.toLowerCase().includes(q) || f.city?.toLowerCase().includes(q);
+    return catOk && textOk;
+  });
 
   return (
     <>
@@ -284,21 +323,21 @@ export default function FarmMap() {
         <aside
           ref={listRef}
           className={`${mobileView === "list" ? "flex" : "hidden"} lg:flex flex-col flex-shrink-0`}
-          style={{ width: 320, backgroundColor: "#FAF7F2", borderRight: "1px solid #e8e2d9", zIndex: 10 }}
+          style={{ width: 320, backgroundColor: "#FAF7F2", borderRight: "1px solid #e8e2d9" }}
         >
-          {/* Header + search */}
+          {/* Header */}
           <div className="px-4 pt-4 pb-3" style={{ borderBottom: "1px solid #e8e2d9" }}>
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-heading font-bold text-lg" style={{ color: "#1a2e0a" }}>Farm Map</h2>
               <button
                 onClick={locate}
-                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all duration-200 hover:-translate-y-0.5"
+                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all hover:-translate-y-0.5"
                 style={{ backgroundColor: "rgba(45,80,22,0.08)", color: "#2D5016" }}
               >
-                <Navigation2 size={11} />
-                Near me
+                <Navigation2 size={11} /> Near me
               </button>
             </div>
+            {/* Search */}
             <div className="relative">
               <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#9b9b9b" }} />
               <input
@@ -306,7 +345,7 @@ export default function FarmMap() {
                 placeholder="Search farms…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full rounded-full pl-8 pr-8 py-2 text-sm outline-none transition-colors"
+                className="w-full rounded-full pl-8 pr-8 py-2 text-sm outline-none"
                 style={{ backgroundColor: "#f0ebe3", border: "1.5px solid transparent", color: "#1a1a1a" }}
                 onFocus={(e) => (e.target.style.borderColor = "#2D5016")}
                 onBlur={(e)  => (e.target.style.borderColor = "transparent")}
@@ -320,15 +359,12 @@ export default function FarmMap() {
           </div>
 
           {/* Category chips */}
-          <div
-            className="flex gap-1.5 px-3 py-2.5 overflow-x-auto"
-            style={{ borderBottom: "1px solid #e8e2d9", scrollbarWidth: "none" }}
-          >
+          <div className="flex gap-1.5 px-3 py-2.5 overflow-x-auto" style={{ borderBottom: "1px solid #e8e2d9", scrollbarWidth: "none" }}>
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCat(cat)}
-                className="flex-shrink-0 whitespace-nowrap rounded-full text-xs font-semibold px-3 py-1.5 transition-all duration-150"
+                className="flex-shrink-0 whitespace-nowrap rounded-full text-xs font-semibold px-3 py-1.5 transition-all"
                 style={{
                   backgroundColor: activeCat === cat ? "#2D5016" : "#f0ebe3",
                   color:           activeCat === cat ? "#FAF7F2" : "#6b6b6b",
@@ -339,7 +375,7 @@ export default function FarmMap() {
             ))}
           </div>
 
-          {/* Count bar */}
+          {/* Count */}
           <div className="px-4 py-2 text-xs" style={{ color: "#aaa" }}>
             {loading ? "Loading farms…" : `${filtered.length} farm${filtered.length !== 1 ? "s" : ""} shown`}
           </div>
@@ -371,49 +407,32 @@ export default function FarmMap() {
                     key={farm.id}
                     data-id={farm.id}
                     onClick={() => selectFarm(farm)}
-                    onMouseEnter={() => setHoveredId(farm.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                    className="w-full text-left flex gap-3 p-3 rounded-xl transition-all duration-150"
+                    className="w-full text-left flex gap-3 p-3 rounded-xl transition-all"
                     style={{
                       margin: "2px 8px",
                       width: "calc(100% - 16px)",
                       backgroundColor: isSel ? "rgba(45,80,22,0.07)" : "transparent",
-                      border: `1.5px solid ${isSel ? "rgba(45,80,22,0.18)" : "transparent"}`,
+                      border: `1.5px solid ${isSel ? "rgba(45,80,22,0.2)" : "transparent"}`,
                     }}
                   >
-                    {/* Thumbnail */}
                     <div className="rounded-xl overflow-hidden flex-shrink-0" style={{ width: 62, height: 62 }}>
-                      {farm.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={farm.imageUrl} alt={farm.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-2xl" style={{ backgroundColor: "#f0ebe3" }}>
-                          {CAT_EMOJI[farm.category]}
-                        </div>
-                      )}
+                      {farm.imageUrl
+                        ? <img src={farm.imageUrl} alt={farm.name} className="w-full h-full object-cover" /> // eslint-disable-line @next/next/no-img-element
+                        : <div className="w-full h-full flex items-center justify-center text-2xl" style={{ backgroundColor: "#f0ebe3" }}>{CAT_EMOJI[farm.category]}</div>
+                      }
                     </div>
-
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-1 mb-0.5">
-                        <span className="font-semibold text-sm leading-snug truncate" style={{ color: "#1a1a1a" }}>
-                          {farm.name}
-                        </span>
+                        <span className="font-semibold text-sm truncate" style={{ color: "#1a1a1a" }}>{farm.name}</span>
                         <span className="flex items-center gap-0.5 flex-shrink-0 text-xs font-medium" style={{ color: "#6b6b6b" }}>
-                          <Star size={10} fill="#D4A96A" stroke="none" />
-                          {farm.rating.toFixed(1)}
+                          <Star size={10} fill="#D4A96A" stroke="none" />{farm.rating.toFixed(1)}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 mb-2">
                         <MapPin size={10} style={{ color: "#9b9b9b" }} />
-                        <span className="text-xs truncate" style={{ color: "#9b9b9b" }}>
-                          {farm.city || farm.location}
-                        </span>
+                        <span className="text-xs truncate" style={{ color: "#9b9b9b" }}>{farm.city || farm.location}</span>
                       </div>
-                      <span
-                        className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full"
-                        style={{ backgroundColor: `${color}18`, color }}
-                      >
+                      <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${color}18`, color }}>
                         {CAT_EMOJI[farm.category]} {farm.category}
                       </span>
                     </div>
@@ -426,90 +445,19 @@ export default function FarmMap() {
 
         {/* ── Map ─────────────────────────────────────────────────────────── */}
         <div
-          className={`${mobileView === "map" ? "flex" : "hidden"} lg:flex flex-1 relative`}
+          className={`${mobileView === "map" ? "block" : "hidden"} lg:block flex-1 relative`}
           style={{ minWidth: 0 }}
         >
-          <MapContainer
-            center={DEFAULT_CENTER}
-            zoom={DEFAULT_ZOOM}
-            style={{ position: "absolute", inset: 0 }}
-            zoomControl={false}
-          >
-            {/* CartoDB Voyager — clean, modern tile style */}
-            <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-              attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-              maxZoom={19}
-            />
+          {/* Leaflet mounts here */}
+          <div ref={mapDivRef} style={{ position: "absolute", inset: 0 }} />
 
-            <FlyTo target={flyTarget} />
-            <UserDot pos={userPos} />
-
-            {filtered.map((farm) => (
-              <Marker
-                key={`${farm.id}-${selectedId}-${hoveredId}`}
-                position={[farm.lat, farm.lng]}
-                icon={makeIcon(farm)}
-                eventHandlers={{
-                  click:     () => { setSelectedId(farm.id); },
-                  mouseover: () => setHoveredId(farm.id),
-                  mouseout:  () => setHoveredId(null),
-                }}
-              >
-                <Popup closeOnClick={false}>
-                  <div>
-                    {farm.imageUrl && (
-                      <div className="overflow-hidden" style={{ height: 130 }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={farm.imageUrl} alt={farm.name} className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                    <div className="p-3.5">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <span className="font-bold text-sm leading-snug" style={{ color: "#1a1a1a" }}>
-                          {farm.name}
-                        </span>
-                        <span className="flex items-center gap-0.5 flex-shrink-0 text-xs font-medium" style={{ color: "#6b6b6b" }}>
-                          <Star size={10} fill="#D4A96A" stroke="none" />
-                          {farm.rating.toFixed(1)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 mb-2">
-                        <MapPin size={10} style={{ color: "#9b9b9b" }} />
-                        <span className="text-xs" style={{ color: "#9b9b9b" }}>{farm.city || farm.location}</span>
-                      </div>
-                      {farm.bio && (
-                        <p className="text-xs leading-relaxed mb-2.5" style={{ color: "#6b6b6b" }}>
-                          {farm.bio.slice(0, 90)}{farm.bio.length > 90 ? "…" : ""}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-1">
-                        {farm.practices.slice(0, 3).map((p) => (
-                          <span
-                            key={p.id}
-                            className="text-xs px-2 py-0.5 rounded-full font-medium"
-                            style={{ backgroundColor: "rgba(45,80,22,0.08)", color: "#2D5016" }}
-                          >
-                            {p.name}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
-
-          {/* Floating locate button */}
+          {/* Locate button */}
           <button
             onClick={locate}
             title="Find farms near me"
-            className="absolute z-[1000] flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+            className="absolute z-[1000] flex items-center justify-center transition-all hover:-translate-y-0.5"
             style={{
-              top: 12, right: 12,
-              width: 42, height: 42,
-              borderRadius: "50%",
+              top: 12, right: 12, width: 42, height: 42, borderRadius: "50%",
               backgroundColor: "#fff",
               boxShadow: "0 2px 14px rgba(0,0,0,0.14)",
               border: "1px solid #e8e2d9",
@@ -520,7 +468,7 @@ export default function FarmMap() {
         </div>
       </div>
 
-      {/* ── Mobile map/list toggle ─────────────────────────────────────── */}
+      {/* ── Mobile toggle ──────────────────────────────────────────────── */}
       <div
         className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1100] lg:hidden flex rounded-full overflow-hidden"
         style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.2)", border: "1.5px solid rgba(255,255,255,0.15)" }}
@@ -528,7 +476,10 @@ export default function FarmMap() {
         {(["map", "list"] as const).map((v) => (
           <button
             key={v}
-            onClick={() => setMobileView(v)}
+            onClick={() => {
+              setMobileView(v);
+              if (v === "map") setTimeout(() => mapRef.current?.invalidateSize(), 50);
+            }}
             className="px-6 py-2.5 text-sm font-semibold"
             style={{
               backgroundColor: mobileView === v ? "#2D5016" : "#FAF7F2",
