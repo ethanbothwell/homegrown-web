@@ -40,6 +40,7 @@ export function Nav() {
 
   const navLinks = [
     { label: "Home",        href: "/" },
+    { label: "Farm Map",    href: "/map" },
     { label: "Marketplace", href: "/marketplace" },
     { label: "Browse Farms", href: "/farms" },
     ...(user?.role === "Farmer" ? [{ label: "Dashboard",        href: "/dashboard" }]        : []),
@@ -122,6 +123,11 @@ export function Nav() {
 
           {/* ── Desktop right nav ── */}
           <nav className="hidden md:flex items-center gap-1">
+            <Link href="/map">
+              <Button variant="ghost" size="sm" className="font-normal hover:bg-white/10" style={{ color: "rgba(250,247,242,0.85)" }}>
+                Farm Map
+              </Button>
+            </Link>
             <Link href="/marketplace">
               <Button variant="ghost" size="sm" className="font-normal hover:bg-white/10" style={{ color: "rgba(250,247,242,0.85)" }}>
                 Marketplace
