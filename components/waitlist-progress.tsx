@@ -10,241 +10,97 @@ const POLL_INTERVAL_MS = 30_000;
 // ─── Plant visual ─────────────────────────────────────────────────────────────
 
 function PlantVisual({ pct }: { pct: number }) {
-  const stage = pct >= 100 ? 4 : pct >= 75 ? 3 : pct >= 50 ? 2 : pct >= 25 ? 1 : 0;
-
-  // Desaturate fully at 0%, full color at 100%
-  const grayscale = Math.round(Math.max(0, 100 - pct));
-
-  const STAGE_LABELS = [
-    "Just sprouting…",
-    "Growing…",
-    "Taking shape…",
-    "Almost there…",
-    "Unlocked!",
-  ];
-
-  function appear(minStage: number): React.CSSProperties {
-    const on = stage >= minStage;
-    return {
-      opacity: on ? 1 : 0,
-      transform: on ? "translateY(0px)" : "translateY(10px)",
-      transition: "opacity 1.2s ease, transform 1.2s ease",
-    };
-  }
+  // CSS clip-path inset reveals the colored plant from bottom to top as pct rises.
+  // inset(top% 0 0 0): top=100% hides everything, top=0% shows everything.
+  const topInset = Math.max(0, 100 - pct);
 
   return (
-    <div className="flex flex-col items-center select-none">
-      <div
-        style={{
-          width: 220,
-          filter: `grayscale(${grayscale}%)`,
-          transition: "filter 1.8s ease",
-        }}
-      >
-        <svg
-          viewBox="0 0 200 310"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{ overflow: "visible" }}
-        >
-          {/* ── Drop shadow ── */}
-          <ellipse cx="100" cy="306" rx="54" ry="7" fill="rgba(0,0,0,0.09)" />
+    <div className="flex flex-col items-center select-none gap-3">
+      <div style={{ width: 130, position: "relative" }}>
 
-          {/* ── Pot body ── */}
-          <path d="M 47 232 L 153 232 L 143 294 L 57 294 Z" fill="#9B4520" />
-          {/* right-side shading */}
-          <path d="M 153 232 L 148 232 L 138 294 L 143 294 Z" fill="rgba(0,0,0,0.15)" />
-          {/* left-side highlight */}
-          <path d="M 47 232 L 52 232 L 62 294 L 57 294 Z" fill="rgba(255,255,255,0.07)" />
-
-          {/* ── Pot rim ── */}
-          <rect x="30" y="213" width="140" height="21" rx="8" fill="#C4622D" />
-          {/* rim top highlight */}
-          <rect x="30" y="213" width="140" height="9" rx="8" fill="rgba(255,255,255,0.14)" />
-
-          {/* ── Soil ── */}
-          <ellipse cx="100" cy="216" rx="63" ry="11" fill="#241208" />
-          <ellipse cx="100" cy="213" rx="47" ry="7"  fill="#3A1E0C" />
-          {/* texture pebbles */}
-          {([
-            [76, 214], [88, 211], [104, 214], [116, 211], [94, 217], [110, 217],
-          ] as [number, number][]).map(([x, y], i) => (
-            <circle key={i} cx={x} cy={y} r="1.8" fill="rgba(255,255,255,0.07)" />
-          ))}
-
-          {/* ── Stem (fade in at stage 1) ── */}
+        {/* Ghost layer — always visible, shows full plant shape */}
+        <svg viewBox="0 0 100 185" xmlns="http://www.w3.org/2000/svg">
+          {/* Pot rim */}
+          <rect x="22" y="142" width="56" height="10" rx="5" fill="rgba(196,98,45,0.14)" />
+          {/* Pot body */}
+          <path d="M 26 152 L 34 180 L 66 180 L 74 152 Z" fill="rgba(155,69,32,0.10)" />
+          {/* Stem */}
           <path
-            d="M 100 214 C 100 195 99 170 100 80"
-            stroke="#4A7C3F"
-            strokeWidth="3.2"
+            d="M 50 143 C 50 125 51 95 50 25"
+            stroke="rgba(74,124,63,0.14)"
+            strokeWidth="2.5"
             fill="none"
             strokeLinecap="round"
-            style={{
-              opacity: stage >= 1 ? 1 : 0,
-              transition: "opacity 1s ease",
-            }}
           />
-
-          {/* ── Sprout at stage 0 — always visible until stage 1 ── */}
+          {/* Left leaf (lower) */}
           <path
-            d="M 100 214 C 100 204 97 196 100 188 C 103 196 100 204 100 214 Z"
-            fill="#82B25A"
-            style={{
-              opacity: stage === 0 ? 1 : 0,
-              transition: "opacity 0.8s ease",
-            }}
+            d="M 50 105 C 34 89, 8 94, 8 108 C 8 120, 36 122, 50 115 Z"
+            fill="rgba(74,124,63,0.10)"
           />
+          {/* Right leaf (upper) */}
+          <path
+            d="M 50 71 C 66 55, 92 60, 92 74 C 92 86, 64 84, 50 81 Z"
+            fill="rgba(74,124,63,0.10)"
+          />
+          {/* Tip bud */}
+          <path
+            d="M 50 27 C 46 18, 45 8, 50 2 C 55 8, 54 18, 50 27 Z"
+            fill="rgba(74,124,63,0.10)"
+          />
+        </svg>
 
-          {/* ── Stem tip leaf — visible stage 1+ ── */}
-          <g style={appear(1)}>
+        {/* Filled layer — revealed from bottom up via CSS clip-path */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            clipPath: `inset(${topInset}% 0 0 0)`,
+            transition: "clip-path 1.4s ease",
+          }}
+        >
+          <svg viewBox="0 0 100 185" xmlns="http://www.w3.org/2000/svg">
+            {/* Pot rim */}
+            <rect x="22" y="142" width="56" height="10" rx="5" fill="#C4622D" />
+            {/* Pot body */}
+            <path d="M 26 152 L 34 180 L 66 180 L 74 152 Z" fill="#9B4520" />
+            {/* Soil */}
+            <ellipse cx="50" cy="144" rx="26" ry="4" fill="#3A1E0C" />
+            {/* Stem */}
             <path
-              d="M 100 100 C 96 90 95 79 100 70 C 105 79 104 90 100 100 Z"
+              d="M 50 143 C 50 125 51 95 50 25"
+              stroke="#4A7C3F"
+              strokeWidth="2.5"
+              fill="none"
+              strokeLinecap="round"
+            />
+            {/* Left leaf (lower) */}
+            <path
+              d="M 50 105 C 34 89, 8 94, 8 108 C 8 120, 36 122, 50 115 Z"
+              fill="#6BAD48"
+            />
+            <line
+              x1="50" y1="105" x2="10" y2="110"
+              stroke="#4A7C3F" strokeWidth="0.8" strokeLinecap="round" opacity="0.45"
+            />
+            {/* Right leaf (upper) */}
+            <path
+              d="M 50 71 C 66 55, 92 60, 92 74 C 92 86, 64 84, 50 81 Z"
+              fill="#559940"
+            />
+            <line
+              x1="50" y1="71" x2="90" y2="76"
+              stroke="#3D6B35" strokeWidth="0.8" strokeLinecap="round" opacity="0.45"
+            />
+            {/* Tip bud */}
+            <path
+              d="M 50 27 C 46 18, 45 8, 50 2 C 55 8, 54 18, 50 27 Z"
               fill="#82B25A"
             />
-          </g>
-
-          {/* ── Stage 1: small leaf pair ── */}
-          <g style={appear(1)}>
-            {/* left */}
-            <path
-              d="M 100 194 C 88 182 68 186 64 197 C 68 207 90 203 100 197 Z"
-              fill="#8CBF65"
-            />
-            <line
-              x1="100" y1="194" x2="68" y2="198"
-              stroke="#5B8A3F" strokeWidth="0.8"
-              strokeLinecap="round" opacity="0.55"
-            />
-            {/* right */}
-            <path
-              d="M 100 194 C 112 182 132 186 136 197 C 132 207 110 203 100 197 Z"
-              fill="#8CBF65"
-            />
-            <line
-              x1="100" y1="194" x2="132" y2="198"
-              stroke="#5B8A3F" strokeWidth="0.8"
-              strokeLinecap="round" opacity="0.55"
-            />
-          </g>
-
-          {/* ── Stage 2: medium leaf pair ── */}
-          <g style={appear(2)}>
-            {/* left */}
-            <path
-              d="M 99 157 C 83 141 55 147 50 163 C 56 175 85 171 99 161 Z"
-              fill="#6BAD48"
-            />
-            <line
-              x1="99" y1="157" x2="56" y2="164"
-              stroke="#4A7C3F" strokeWidth="0.8"
-              strokeLinecap="round" opacity="0.55"
-            />
-            {/* right */}
-            <path
-              d="M 101 157 C 117 141 145 147 150 163 C 144 175 115 171 101 161 Z"
-              fill="#6BAD48"
-            />
-            <line
-              x1="101" y1="157" x2="144" y2="164"
-              stroke="#4A7C3F" strokeWidth="0.8"
-              strokeLinecap="round" opacity="0.55"
-            />
-          </g>
-
-          {/* ── Stage 3: large leaf pair ── */}
-          <g style={appear(3)}>
-            {/* left */}
-            <path
-              d="M 98 118 C 77 100 44 107 38 125 C 44 140 79 136 98 122 Z"
-              fill="#559940"
-            />
-            <line
-              x1="98" y1="118" x2="45" y2="126"
-              stroke="#3D6B35" strokeWidth="0.8"
-              strokeLinecap="round" opacity="0.55"
-            />
-            {/* right */}
-            <path
-              d="M 102 118 C 123 100 156 107 162 125 C 156 140 121 136 102 122 Z"
-              fill="#559940"
-            />
-            <line
-              x1="102" y1="118" x2="155" y2="126"
-              stroke="#3D6B35" strokeWidth="0.8"
-              strokeLinecap="round" opacity="0.55"
-            />
-          </g>
-
-          {/* ── Stage 3: closed flower bud ── */}
-          <g
-            style={{
-              opacity: stage === 3 ? 1 : 0,
-              transition: "opacity 0.8s ease",
-            }}
-          >
-            <path
-              d="M 100 80 C 96 71 95 62 100 55 C 105 62 104 71 100 80 Z"
-              fill="#D4A96A"
-              opacity="0.75"
-            />
-            <ellipse cx="100" cy="61" rx="5" ry="7" fill="#C4622D" opacity="0.8" />
-          </g>
-
-          {/* ── Stage 4: open flower ── */}
-          <g style={appear(4)}>
-            {/* 6 petals at 60° intervals */}
-            {([
-              [112,  80,   0],
-              [106,  90,  60],
-              [ 94,  90, 120],
-              [ 88,  80, 180],
-              [ 94,  70, 240],
-              [106,  70, 300],
-            ] as [number, number, number][]).map(([cx, cy, rot], i) => (
-              <ellipse
-                key={i}
-                cx={cx}
-                cy={cy}
-                rx="9"
-                ry="5.5"
-                fill="#D4A96A"
-                transform={`rotate(${rot}, ${cx}, ${cy})`}
-              />
-            ))}
-            {/* petal inner glow */}
-            {([
-              [112,  80,   0],
-              [106,  90,  60],
-              [ 94,  90, 120],
-              [ 88,  80, 180],
-              [ 94,  70, 240],
-              [106,  70, 300],
-            ] as [number, number, number][]).map(([cx, cy, rot], i) => (
-              <ellipse
-                key={`h${i}`}
-                cx={cx}
-                cy={cy}
-                rx="5"
-                ry="3"
-                fill="rgba(255,255,255,0.2)"
-                transform={`rotate(${rot}, ${cx}, ${cy})`}
-              />
-            ))}
-            {/* flower center */}
-            <circle cx="100" cy="80" r="9.5" fill="#C4622D" />
-            <circle cx="100" cy="80" r="5.5" fill="#D96B3A" />
-            <circle cx="100" cy="80" r="2.5" fill="#EE9060" />
-          </g>
-        </svg>
+          </svg>
+        </div>
       </div>
 
-      {/* Stage label */}
-      <p
-        className="text-sm font-semibold mt-1 transition-all duration-700"
-        style={{ color: stage === 4 ? "#2D5016" : "#6b6b6b" }}
-      >
-        {STAGE_LABELS[stage]}
-      </p>
-      <p className="text-xs mt-0.5" style={{ color: "#bbb" }}>
+      <p className="text-xs font-medium" style={{ color: "#9B9590" }}>
         {Math.round(pct)}% to unlock
       </p>
     </div>

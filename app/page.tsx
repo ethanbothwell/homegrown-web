@@ -158,27 +158,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── TRUST BAR ────────────────────────────────────────────────────── */}
-      <div style={{ backgroundColor: "#ffffff", borderBottom: "1px solid #E2DBD0" }}>
-        <div className="max-w-5xl mx-auto px-6 py-5 flex flex-wrap justify-center sm:justify-between items-center gap-4">
-          {[
-            "Small-batch, seasonal produce",
-            "No middlemen — farmers set their prices",
-            "Cancel or pause anytime",
-            "Community-unlocked delivery areas",
-          ].map((item) => (
-            <span
-              key={item}
-              className="flex items-center gap-2 text-sm font-medium"
-              style={{ color: "#6B6560" }}
-            >
-              <span style={{ color: "#2D5016", fontSize: "1rem" }}>✦</span>
-              {item}
-            </span>
-          ))}
-        </div>
-      </div>
-
       {/* ─── VALUE PROPS ──────────────────────────────────────────────────── */}
       <section style={{ backgroundColor: "#FAF7F2", padding: "6rem 0" }}>
         <div className="max-w-5xl mx-auto px-6">
