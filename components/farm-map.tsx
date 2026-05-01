@@ -9,50 +9,58 @@ import { MapPin, Navigation2, Search, Star, X } from "lucide-react";
 // ─── Oregon city coordinates ──────────────────────────────────────────────────
 
 const CITY_COORDS: Record<string, [number, number]> = {
-  Portland:  [45.5051, -122.6750],
-  Salem:     [44.9429, -123.0351],
-  Corvallis: [44.5646, -123.2620],
-  Eugene:    [44.0521, -123.0868],
-  Bend:      [44.0582, -121.3153],
-  Medford:   [42.3265, -122.8756],
-  Astoria:   [46.1879, -123.8313],
-  Newport:   [44.6368, -124.0531],
+  // Corvallis metro area (most specific first so substring matching works)
+  "South Corvallis":    [44.5380, -123.2780],
+  "Downtown Corvallis": [44.5648, -123.2594],
+  Philomath:            [44.5402, -123.3650],
+  Monroe:               [44.3163, -123.2943],
+  Corvallis:            [44.5646, -123.2620],
+  // Wider Oregon
+  Portland:             [45.5051, -122.6750],
+  Salem:                [44.9429, -123.0351],
+  Eugene:               [44.0521, -123.0868],
+  Bend:                 [44.0582, -121.3153],
+  Medford:              [42.3265, -122.8756],
+  Astoria:              [46.1879, -123.8313],
+  Newport:              [44.6368, -124.0531],
 };
 
-const DEFAULT_CENTER: [number, number] = [44.4, -122.9];
-const DEFAULT_ZOOM = 7;
+const DEFAULT_CENTER: [number, number] = [44.5646, -123.2620]; // Corvallis
+const DEFAULT_ZOOM = 11;
 
 // ─── Mock farms ───────────────────────────────────────────────────────────────
 
+// The 4 canonical farms are pinned to distinct Corvallis-metro locations.
+// Additional farms fill out the wider Oregon map.
 const MOCK_FARMS: Farm[] = [
   {
-    id: "f1", name: "Sunridge Farm", location: "Corvallis, OR",
-    city: "Corvallis", state: "OR",
-    bio: "Three generations of sustainable vegetable farming in the Willamette Valley.",
+    id: "f1", name: "Sunridge Farm", location: "South Corvallis, OR",
+    city: "South Corvallis", state: "OR",
+    bio: "Three generations of sustainable vegetable farming in the Willamette Valley. Certified organic since 1998.",
     practices: [{ id: "1", name: "Certified Organic" }, { id: "2", name: "No-Spray" }, { id: "3", name: "Pasture-Raised" }],
     imageUrl: "https://images.unsplash.com/photo-1500076656116-558758c991c1?w=500&q=80",
     rating: 4.9, reviewCount: 42, ownerName: "Jake Sunridge", subscriptionPlans: [],
   },
   {
-    id: "f2", name: "Willamette Bakehouse", location: "Salem, OR",
-    city: "Salem", state: "OR",
+    id: "f2", name: "Willamette Bakehouse", location: "Downtown Corvallis, OR",
+    city: "Downtown Corvallis", state: "OR",
     bio: "Artisan bread and pastries made with heritage grains. Wood-fired oven, baked fresh daily.",
     practices: [{ id: "4", name: "Heritage Grains" }, { id: "5", name: "Wood-Fired" }, { id: "6", name: "Small Batch" }],
     imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&q=80",
     rating: 4.8, reviewCount: 28, ownerName: "Marie Dupont", subscriptionPlans: [],
   },
   {
-    id: "f3", name: "Cascade Creamery", location: "Portland, OR",
-    city: "Portland", state: "OR",
+    id: "f3", name: "Cascade Creamery", location: "Philomath, OR",
+    city: "Philomath", state: "OR",
     bio: "Small-batch raw milk dairy. Jersey cows on 40 acres of coastal pasture year-round.",
     practices: [{ id: "7", name: "Raw Milk" }, { id: "8", name: "Grass-Fed" }, { id: "9", name: "Humane Certified" }],
     imageUrl: "https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=500&q=80",
     rating: 4.7, reviewCount: 35, ownerName: "Tom Cascade", subscriptionPlans: [],
   },
   {
-    id: "f4", name: "Blue Heron Orchard", location: "Eugene, OR",
-    city: "Eugene", state: "OR",
-    bio: "Heritage apple and pear varieties grown without synthetic pesticides.",
+    id: "f4", name: "Blue Heron Orchard", location: "Monroe, OR",
+    city: "Monroe", state: "OR",
+    bio: "Heritage apple and pear varieties grown without synthetic pesticides. U-pick available in season.",
     practices: [{ id: "10", name: "No Pesticides" }, { id: "11", name: "Heritage Varieties" }, { id: "12", name: "U-Pick" }],
     imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500&q=80",
     rating: 4.9, reviewCount: 61, ownerName: "Helen Blue", subscriptionPlans: [],
@@ -179,7 +187,9 @@ export default function FarmMap() {
   useEffect(() => {
     farmsApi.list()
       .then((data) => {
-        const src = data.length ? data : MOCK_FARMS;
+        // Only use real API data when there are enough live farms.
+        // Until then keep the mock set so the map always looks populated.
+        const src = data.length >= 4 ? data : MOCK_FARMS;
         setAllFarms(src.map((f, i) => ({ ...f, lat: getCoords(f, i)[0], lng: getCoords(f, i)[1], category: deriveCat(f) })));
       })
       .catch(() => {

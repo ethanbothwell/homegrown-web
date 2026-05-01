@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { products as productsApi, Product } from "@/lib/api";
-import { Search, SlidersHorizontal, Package } from "lucide-react";
+import { Search, SlidersHorizontal, Package, ArrowRight } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 const CATEGORIES = [
   "All",
@@ -35,9 +36,86 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   "Honey":    { bg: "#B8860B", text: "#FAF7F2" },
 };
 
+// ─── Mock products (shown to unauthenticated visitors) ───────────────────────
+
+const MOCK_PRODUCTS: Product[] = [
+  {
+    id: "mp1",
+    farmId: "f1",
+    farmName: "Sunridge Farm",
+    name: "Dozen Pasture-Raised Eggs",
+    category: "Eggs",
+    price: 8.00,
+    unit: "dozen",
+    imageUrl: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&q=80",
+    description: "Rich orange yolks from hens raised on open pasture.",
+    inStock: true,
+  },
+  {
+    id: "mp2",
+    farmId: "f1",
+    farmName: "Sunridge Farm",
+    name: "Weekly Veggie Box",
+    category: "Farm Box",
+    price: 45.00,
+    unit: "box",
+    imageUrl: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80",
+    description: "8–10 seasonal vegetables, harvested the morning of delivery.",
+    inStock: true,
+  },
+  {
+    id: "mp3",
+    farmId: "f2",
+    farmName: "Willamette Bakehouse",
+    name: "Country Sourdough Loaf",
+    category: "Bread",
+    price: 12.00,
+    unit: "loaf",
+    imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=80",
+    description: "72-hour ferment with Oregon hard red wheat.",
+    inStock: true,
+  },
+  {
+    id: "mp4",
+    farmId: "f2",
+    farmName: "Willamette Bakehouse",
+    name: "Croissant Box (6)",
+    category: "Pastries",
+    price: 18.00,
+    unit: "box",
+    imageUrl: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&q=80",
+    description: "Laminated with local cultured butter. Baked fresh daily.",
+    inStock: true,
+  },
+  {
+    id: "mp5",
+    farmId: "f3",
+    farmName: "Cascade Creamery",
+    name: "Raw Whole Milk",
+    category: "Dairy",
+    price: 14.00,
+    unit: "gallon",
+    imageUrl: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&q=80",
+    description: "Non-homogenized, cream-top. Jersey cows on coastal pasture.",
+    inStock: true,
+  },
+  {
+    id: "mp6",
+    farmId: "f4",
+    farmName: "Blue Heron Orchard",
+    name: "Mixed Heritage Apple Box",
+    category: "Produce",
+    price: 28.00,
+    unit: "10 lb",
+    imageUrl: "https://images.unsplash.com/photo-1506484381205-f7945653044d?w=400&q=80",
+    description: "Cox's Orange Pippin, Gravenstein, Newtown Pippin and more.",
+    inStock: true,
+  },
+];
+
 // ─── Product card ────────────────────────────────────────────────────────────
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product, farmHref }: { product: Product; farmHref: string }) {
   const colors = CATEGORY_COLORS[product.category] ?? { bg: "#2D5016", text: "#FAF7F2" };
 
   return (
@@ -94,7 +172,7 @@ function ProductCard({ product }: { product: Product }) {
       {/* Info */}
       <div className="p-4 flex flex-col flex-1">
         <Link
-          href={`/farms/${product.farmId}`}
+          href={farmHref}
           className="text-xs mb-1 hover:underline truncate"
           style={{ color: "#9b9b9b" }}
         >
@@ -136,7 +214,7 @@ function ProductCard({ product }: { product: Product }) {
             )}
           </div>
 
-          <Link href={`/farms/${product.farmId}`}>
+          <Link href={farmHref}>
             <button
               disabled={!product.inStock}
               className="text-xs font-semibold px-3 py-1.5 rounded-full transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
@@ -172,6 +250,9 @@ function SkeletonCard() {
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function MarketplacePage() {
+  const { user, loading: authLoading } = useAuth();
+  const isPreview = !authLoading && !user;
+
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState("");
@@ -181,6 +262,7 @@ export default function MarketplacePage() {
   const [inStockOnly, setInStockOnly] = useState(false);
 
   const load = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
     try {
       const data = await productsApi.list({
@@ -195,23 +277,45 @@ export default function MarketplacePage() {
     } finally {
       setLoading(false);
     }
-  }, [category, inStockOnly, sort]);
+  }, [category, inStockOnly, sort, user]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setAllProducts(MOCK_PRODUCTS);
+      setLoading(false);
+      return;
+    }
+    load();
+  }, [user, authLoading, load]);
 
-  // Client-side search filter (runs on top of server-filtered results)
-  const filtered = search.trim()
-    ? allProducts.filter((p) => {
-        const q = search.toLowerCase();
-        return (
-          p.name.toLowerCase().includes(q) ||
-          p.farmName.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.description?.toLowerCase().includes(q) ||
-          p.tags?.toLowerCase().includes(q)
-        );
-      })
-    : allProducts;
+  // Filtering: text search always client-side; category/sort/inStock also client-side in preview mode
+  const filtered = (() => {
+    let list = allProducts;
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.farmName.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q) ||
+        p.tags?.toLowerCase().includes(q)
+      );
+    }
+
+    if (isPreview) {
+      if (category !== "All") list = list.filter((p) => p.category === category);
+      if (inStockOnly) list = list.filter((p) => p.inStock);
+      list = [...list].sort((a, b) =>
+        sort === "price_asc"  ? a.price - b.price :
+        sort === "price_desc" ? b.price - a.price :
+        a.name.localeCompare(b.name)
+      );
+    }
+
+    return list;
+  })();
 
   return (
     <div style={{ minHeight: "100svh", backgroundColor: "#FAF7F2" }}>
@@ -240,6 +344,27 @@ export default function MarketplacePage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
+
+        {/* Preview banner */}
+        {isPreview && (
+          <div
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl px-5 py-4 mb-8"
+            style={{ backgroundColor: "rgba(45,80,22,0.06)", border: "1.5px solid rgba(45,80,22,0.15)" }}
+          >
+            <p className="text-sm" style={{ color: "#3A3530" }}>
+              <span className="font-semibold" style={{ color: "#2D5016" }}>Preview mode</span>
+              {" "}— sample products from Corvallis-area farms. Sign in to browse live listings.
+            </p>
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap transition-colors hover:underline"
+              style={{ color: "#B85C27" }}
+            >
+              Join the waitlist
+              <ArrowRight size={13} />
+            </Link>
+          </div>
+        )}
 
         {/* ─── Filter bar ─── */}
         <div className="flex flex-col sm:flex-row gap-3 mb-5">
@@ -338,7 +463,13 @@ export default function MarketplacePage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+            {filtered.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={p}
+                farmHref={isPreview ? "/register" : `/farms/${p.farmId}`}
+              />
+            ))}
           </div>
         )}
       </div>
