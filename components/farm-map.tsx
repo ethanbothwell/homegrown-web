@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { farms as farmsApi, type Farm } from "@/lib/api";
 import { MapPin, Navigation2, Search, Star, X } from "lucide-react";
 
@@ -200,26 +202,21 @@ export default function FarmMap() {
   useEffect(() => {
     if (!mapDivRef.current || mapRef.current) return;
 
-    // Dynamic import to avoid SSR
-    import("leaflet").then((L) => {
-      import("leaflet/dist/leaflet.css");
-
-      const map = L.map(mapDivRef.current!, {
-        center: DEFAULT_CENTER,
-        zoom: DEFAULT_ZOOM,
-        zoomControl: false,
-        scrollWheelZoom: true,
-      });
-
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-        { attribution: "© CARTO © OSM", maxZoom: 19 }
-      ).addTo(map);
-
-      L.control.zoom({ position: "bottomright" }).addTo(map);
-
-      mapRef.current = map;
+    const map = L.map(mapDivRef.current, {
+      center: DEFAULT_CENTER,
+      zoom: DEFAULT_ZOOM,
+      zoomControl: false,
+      scrollWheelZoom: true,
     });
+
+    L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+      { attribution: "© CARTO © OSM", maxZoom: 19 }
+    ).addTo(map);
+
+    L.control.zoom({ position: "bottomright" }).addTo(map);
+
+    mapRef.current = map;
 
     return () => {
       mapRef.current?.remove();
@@ -231,45 +228,37 @@ export default function FarmMap() {
   useEffect(() => {
     if (!mapRef.current || !allFarms.length) return;
 
-    import("leaflet").then((L) => {
-      const map = mapRef.current;
+    const map = mapRef.current;
 
-      // Remove old markers
-      Object.values(markersRef.current).forEach((m) => m.remove());
-      markersRef.current = {};
+    // Remove old markers
+    Object.values(markersRef.current).forEach((m) => m.remove());
+    markersRef.current = {};
 
-      allFarms.forEach((farm) => {
-        const color = CAT_COLOR[farm.category] ?? "#2D5016";
-        const emoji = CAT_EMOJI[farm.category] ?? "🌱";
-        const isSel = selectedId === farm.id;
+    allFarms.forEach((farm) => {
+      const color = CAT_COLOR[farm.category] ?? "#2D5016";
+      const emoji = CAT_EMOJI[farm.category] ?? "🌱";
+      const isSel = selectedId === farm.id;
 
-        const icon = L.divIcon({
-          className: "",
-          html: `<div class="hg-pin${isSel ? " sel" : ""}" style="--c:${color}">
-            <div class="hg-pin-ring"></div>
-            <div class="hg-pin-body">${emoji}</div>
-          </div>`,
-          iconSize:    [40, 40],
-          iconAnchor:  [20, 20],
-          popupAnchor: [0, -24],
-        });
-
-        const imgHtml   = farm.imageUrl ? `<img class="hg-popup-img" src="${farm.imageUrl}" alt="${farm.name}" />` : "";
-        const bioHtml   = farm.bio ? `<p class="hg-popup-bio">${farm.bio.slice(0, 90)}${farm.bio.length > 90 ? "\u2026" : ""}</p>` : "";
-        const tagsHtml  = farm.practices.slice(0, 3).map((p) => `<span class="hg-popup-tag" style="background:${color}18;color:${color}">${p.name}</span>`).join("");
-        const popupHtml = `<div>${imgHtml}<div class="hg-popup-body"><span class="hg-popup-rating">⭐ ${farm.rating.toFixed(1)}</span><p class="hg-popup-name">${farm.name}</p><p class="hg-popup-loc">📍 ${farm.city || farm.location || ""}</p>${bioHtml}<div class="hg-popup-tags">${tagsHtml}</div></div></div>`;
-        const popup = L.popup({ closeButton: false, maxWidth: 280 }).setContent(popupHtml);
-
-        const marker = L.marker([farm.lat, farm.lng], { icon, riseOnHover: true })
-          .bindPopup(popup)
-          .addTo(map);
-
-        marker.on("click", () => {
-          setSelectedId(farm.id);
-        });
-
-        markersRef.current[farm.id] = marker;
+      const icon = L.divIcon({
+        className: "",
+        html: `<div class="hg-pin${isSel ? " sel" : ""}" style="--c:${color}"><div class="hg-pin-ring"></div><div class="hg-pin-body">${emoji}</div></div>`,
+        iconSize:    [40, 40],
+        iconAnchor:  [20, 20],
+        popupAnchor: [0, -24],
       });
+
+      const imgHtml   = farm.imageUrl ? `<img class="hg-popup-img" src="${farm.imageUrl}" alt="${farm.name}" />` : "";
+      const bioHtml   = farm.bio ? `<p class="hg-popup-bio">${farm.bio.slice(0, 90)}${farm.bio.length > 90 ? "\u2026" : ""}</p>` : "";
+      const tagsHtml  = farm.practices.slice(0, 3).map((p) => `<span class="hg-popup-tag" style="background:${color}18;color:${color}">${p.name}</span>`).join("");
+      const popupHtml = `<div>${imgHtml}<div class="hg-popup-body"><span class="hg-popup-rating">⭐ ${farm.rating.toFixed(1)}</span><p class="hg-popup-name">${farm.name}</p><p class="hg-popup-loc">📍 ${farm.city || farm.location || ""}</p>${bioHtml}<div class="hg-popup-tags">${tagsHtml}</div></div></div>`;
+      const popup = L.popup({ closeButton: false, maxWidth: 280 }).setContent(popupHtml);
+
+      const marker = L.marker([farm.lat, farm.lng], { icon, riseOnHover: true })
+        .bindPopup(popup)
+        .addTo(map);
+
+      marker.on("click", () => setSelectedId(farm.id));
+      markersRef.current[farm.id] = marker;
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allFarms, selectedId]);
@@ -288,13 +277,11 @@ export default function FarmMap() {
   const locate = useCallback(() => {
     if (!navigator.geolocation || !mapRef.current) return;
     navigator.geolocation.getCurrentPosition(({ coords }) => {
-      import("leaflet").then((L) => {
-        const map = mapRef.current;
-        map.flyTo([coords.latitude, coords.longitude], 11, { animate: true, duration: 0.9 });
-        L.circleMarker([coords.latitude, coords.longitude], {
-          radius: 9, fillColor: "#4285F4", color: "#fff", weight: 2.5, fillOpacity: 1,
-        }).addTo(map);
-      });
+      const map = mapRef.current;
+      map.flyTo([coords.latitude, coords.longitude], 11, { animate: true, duration: 0.9 });
+      L.circleMarker([coords.latitude, coords.longitude], {
+        radius: 9, fillColor: "#4285F4", color: "#fff", weight: 2.5, fillOpacity: 1,
+      }).addTo(map);
     });
   }, []);
 
