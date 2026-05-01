@@ -132,17 +132,7 @@ const MAP_CSS = `
 .leaflet-container { font-family: inherit; background: #e8e2d9; }
 /* Custom pin */
 .hg-pin { position: relative; width: 40px; height: 40px; cursor: pointer; }
-.hg-pin-ring {
-  position: absolute; inset: -3px; border-radius: 50%;
-  border: 2.5px solid var(--c, #2D5016);
-  animation: hg-pulse 2.6s ease-out infinite;
-  pointer-events: none;
-}
-@keyframes hg-pulse {
-  0%   { transform: scale(0.7);  opacity: 0.85; }
-  65%  { transform: scale(2.15); opacity: 0;    }
-  100% { transform: scale(2.15); opacity: 0;    }
-}
+.hg-pin-ring { display: none; }
 .hg-pin-body {
   position: absolute; inset: 3px; border-radius: 50%;
   background: var(--c, #2D5016);
